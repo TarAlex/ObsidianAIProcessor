@@ -8,18 +8,18 @@ Cursor Agent CLI (https://cursor.com/docs/cli/headless).
 
 Prerequisites:
   - Cursor Agent CLI installed: irm 'https://cursor.com/install?win32=true' | iex
-  - CURSOR_API_KEY env var set (or --api-key flag on each agent call)
+  - CURSOR_API_KEY in .env (project root), or env var, or --api-key
 
 Usage:
-  python tmp/run_tasks.py                          # run everything
-  python tmp/run_tasks.py --section 5              # run only section 05
-  python tmp/run_tasks.py --section 5 --start-task 2   # section 05 from task 2
-  python tmp/run_tasks.py --start-section 3        # resume from section 03
-  python tmp/run_tasks.py --start-section 5 --start-task 2
-  python tmp/run_tasks.py --dry-run                # preview without running
-  python tmp/run_tasks.py --plan-only              # only /plan sessions
-  python tmp/run_tasks.py --build-only             # only /build sessions
-  python tmp/run_tasks.py --stop-on-error          # abort on first failure
+  python runner/run_tasks.py                          # run everything
+  python runner/run_tasks.py --section 5              # run only section 05
+  python runner/run_tasks.py --section 5 --start-task 2   # section 05 from task 2
+  python runner/run_tasks.py --start-section 3        # resume from section 03
+  python runner/run_tasks.py --start-section 5 --start-task 2
+  python runner/run_tasks.py --dry-run                # preview without running
+  python runner/run_tasks.py --plan-only              # only /plan sessions
+  python runner/run_tasks.py --build-only             # only /build sessions
+  python runner/run_tasks.py --stop-on-error          # abort on first failure
 """
 
 import argparse
@@ -36,6 +36,23 @@ from pathlib import Path
 WORKSPACE = Path(__file__).resolve().parent.parent
 TASKS_DIR = WORKSPACE / ".cursor" / "dev" / "tasks"
 LOG_DIR = WORKSPACE / "tmp" / "logs"
+ENV_FILE = WORKSPACE / ".env"
+
+
+def load_dotenv(path: Path) -> None:
+    """Load KEY=VALUE lines from path into os.environ. Skips empty lines and # comments."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" in line:
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip("'\"")
+            if key:
+                os.environ.setdefault(key, value)
 
 SECTION_FILES = [
     "01_foundations.md",
@@ -169,11 +186,12 @@ def run_agent(
     log_file: Path,
     dry_run: bool,
     api_key: str | None,
+    agent_cmd: str = "agent",
 ) -> bool:
-    """Run `agent -p --force --trust` with prompt. Returns True on success."""
+    """Run Cursor CLI (agent_cmd) with -p --force --trust. Returns True on success."""
 
     cmd = [
-        "agent",
+        agent_cmd,
         "-p",
         "--force",
         "--trust",
@@ -199,13 +217,25 @@ def run_agent(
         fh.write(f"--- PROMPT ---\n{prompt}\n\n--- OUTPUT ---\n")
         fh.flush()
 
-        result = subprocess.run(
-            cmd,
-            cwd=str(WORKSPACE),
-            stdout=fh,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(WORKSPACE),
+                stdout=fh,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+        except FileNotFoundError:
+            fh.write("\n--- ERROR: Cursor CLI not found ---\n")
+            fh.write(
+                "Install: irm 'https://cursor.com/install?win32=true' | iex\n"
+                "Or set CURSOR_AGENT_CMD / --agent-cmd to the full path of the agent executable.\n"
+            )
+            logging.error(
+                "Cursor CLI '%s' not found. Install it or set CURSOR_AGENT_CMD / --agent-cmd.",
+                agent_cmd,
+            )
+            return False
 
         fh.write(f"\n--- EXIT CODE: {result.returncode} ---\n")
         fh.write(f"Finished: {datetime.now().isoformat()}\n")
@@ -255,7 +285,11 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--api-key", default=None, metavar="KEY",
-        help="Cursor API key (overrides CURSOR_API_KEY env var)",
+        help="Cursor API key (overrides .env / CURSOR_API_KEY)",
+    )
+    p.add_argument(
+        "--agent-cmd", default=None, metavar="CMD",
+        help="Cursor CLI executable (default: agent; or set CURSOR_AGENT_CMD)",
     )
     return p.parse_args()
 
@@ -273,11 +307,14 @@ def setup_logging(run_id: str) -> None:
 
 
 def main() -> None:
+    load_dotenv(ENV_FILE)
+
     args = parse_args()
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     setup_logging(run_id)
 
     api_key = args.api_key or os.environ.get("CURSOR_API_KEY")
+    agent_cmd = args.agent_cmd or os.environ.get("CURSOR_AGENT_CMD") or "agent"
     if not args.dry_run and not api_key:
         logging.warning(
             "CURSOR_API_KEY is not set and --api-key not provided. "
@@ -329,6 +366,7 @@ def main() -> None:
                     log_file,
                     args.dry_run,
                     api_key,
+                    agent_cmd,
                 )
                 if not ok:
                     failed.append(f"{task.label} [PLAN]")
@@ -348,6 +386,7 @@ def main() -> None:
                     log_file,
                     args.dry_run,
                     api_key,
+                    agent_cmd,
                 )
                 if not ok:
                     failed.append(f"{task.label} [BUILD]")
