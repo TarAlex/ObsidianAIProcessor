@@ -1,0 +1,75 @@
+---
+description: Session startup, vault write guard, pytest logging, and stop-gate for obsidian-agent dev workflow
+alwaysApply: true
+---
+
+# obsidian-agent Dev Session Rules
+
+These rules replicate the hook lifecycle from the previous `.claude/settings.json`
+configuration. Cursor has no built-in hook events, so the agent must follow these
+rules manually. Hook scripts in `.cursor/hooks/` can be run explicitly when needed.
+
+---
+
+## Session start
+
+At the start of every session:
+
+1. Run `python .cursor/hooks/session_start.py` and incorporate its output into your
+   context (shows DONE/TODO counts, IN_PROGRESS items, BLOCKED items).
+2. If `.cursor/dev/lessons.md` is non-empty, read it before writing any code.
+3. Check `.cursor/dev/TRACKER.md` and pick exactly one TODO item to work on.
+
+---
+
+## Vault write guard
+
+Before any Write or Edit operation that targets the Obsidian vault path
+(the value of `OBSIDIAN_VAULT_ROOT` env var, or any path under `02_KNOWLEDGE/`,
+`03_PROJECTS/`, `04_ARCHIVE/`, `05_ARCHIVE/`):
+
+- All vault writes MUST go through `ObsidianVault` (in `agent/vault/vault.py`).
+- Direct writes are only permitted from: `vault.py`, `setup_vault.py`,
+  `reindex.py`, `templates.py`, `archive.py`.
+- If you are about to write directly to a vault path from any other context,
+  STOP and refactor to use `ObsidianVault`.
+
+To run the guard check explicitly: `python .cursor/hooks/guard_vault_write.py`
+
+---
+
+## After running pytest
+
+After any pytest run:
+
+1. If the output contains a summary line like `N passed` or `N failed`, append
+   a timestamped entry to `.cursor/dev/test-results.log`.
+2. You may run `python .cursor/hooks/capture_pytest.py` to do this automatically
+   (pipe pytest output via stdin).
+
+---
+
+## Before marking an item done
+
+Before running `/done "item name"`:
+
+1. Check `.cursor/dev/TRACKER.md` — the item must be IN_PROGRESS.
+2. Check `.cursor/dev/test-results.log` — there must be a recent pytest entry.
+   If the log is empty or stale, remind the user to run pytest first.
+3. Confirm that `/review MODULE_PATH` has returned APPROVED.
+4. You may run `python .cursor/hooks/stop_gate.py` to surface a warning if
+   these conditions are not met.
+
+---
+
+## After a specialist skill finishes
+
+After `/dev-builder`, `/dev-tester`, `/dev-reviewer`, or `/dev-prompt-author`
+completes its work, always remind:
+
+- "Run `/review [module]` if not done yet."
+- "Then run `/done 'item name'` to update TRACKER.md."
+- "Any lessons to capture? Run `/log 'lesson text'`."
+
+Do NOT update `.cursor/dev/TRACKER.md` or `.cursor/dev/lessons.md` directly from
+the specialist skill — route those changes through `/dev-tracker`.
