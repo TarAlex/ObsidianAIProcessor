@@ -59,7 +59,7 @@
 - [ DONE ]  verbatim.py  ★  (render_verbatim_block, parse_verbatim_blocks — round-trip lossless)  → spec: ProgressTracking/specs/vault-verbatim.md
 - [ DONE ]  templates.py  (Jinja2 template loader from _AI_META/templates/)  → spec: ProgressTracking/specs/templates-py.md
 - [ DONE ]  references.py  (REFERENCES/ CRUD: people, work projects, personal projects)  → spec: ProgressTracking/specs/references-py.md
-- [ IN_PROGRESS ]  archive.py  → spec: ProgressTracking/specs/archive-py.md
+- [ DONE ]  archive.py  → spec: ProgressTracking/specs/archive-py.md
 
 ---
 
@@ -73,7 +73,7 @@
 - [ TODO ]  s5_deduplicate.py  (ChromaDB similarity)
 - [ TODO ]  s6a_write.py  (Jinja2 templates → vault notes)
 - [ TODO ]  s6b_index_update.py  ★  (ensure_domain_index + increment + parent rollup)
-- [ TODO ]  s7_archive.py
+- [ DONE ]  s7_archive.py
 
 ---
 

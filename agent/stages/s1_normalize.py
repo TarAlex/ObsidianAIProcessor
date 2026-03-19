@@ -30,39 +30,50 @@ from agent.core.models import NormalizedItem
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Dispatch table — extension (lower-cased) → adapter class
+# Dispatch table — built lazily so module-level names can be patched in tests
 # ---------------------------------------------------------------------------
 
-_EXT_MAP: dict[str, type[BaseAdapter]] = {
-    ".md":   MarkdownAdapter,
-    ".txt":  MarkdownAdapter,
-    ".pdf":  PDFAdapter,
-    ".mp3":  AudioAdapter,
-    ".m4a":  AudioAdapter,
-    ".wav":  AudioAdapter,
-    ".ogg":  AudioAdapter,
-    ".flac": AudioAdapter,
-    ".vtt":  TeamsAdapter,
-    ".html": WebAdapter,
-    ".htm":  WebAdapter,
-    ".url":  WebAdapter,   # sidecar URL files — YouTube check handled in adapter
-    ".webloc": WebAdapter,
-}
+def _build_ext_map() -> dict[str, type[BaseAdapter]]:
+    """Return the extension → adapter class mapping.
+
+    Built on each call so that monkeypatching the module-level names in tests
+    (e.g. ``patch("agent.stages.s1_normalize.MarkdownAdapter")``) takes effect.
+    """
+    return {
+        ".md":     MarkdownAdapter,
+        ".txt":    MarkdownAdapter,
+        ".pdf":    PDFAdapter,
+        ".mp3":    AudioAdapter,
+        ".m4a":    AudioAdapter,
+        ".wav":    AudioAdapter,
+        ".ogg":    AudioAdapter,
+        ".flac":   AudioAdapter,
+        ".vtt":    TeamsAdapter,
+        ".html":   WebAdapter,
+        ".htm":    WebAdapter,
+        ".url":    WebAdapter,    # sidecar URL files — YouTube handled in adapter
+        ".webloc": WebAdapter,
+    }
 
 
 def _select_adapter(raw_path: Path) -> BaseAdapter:
     """Return the correct adapter instance for *raw_path*.
 
     Resolution order:
-    1. Extension lookup in _EXT_MAP (case-insensitive).
-    2. MIME sniff on the first 512 bytes for unknown/missing extensions.
+    1. Extension lookup in the dispatch map (case-insensitive).
+    2. MIME sniff for unknown/missing extensions.
     3. MarkdownAdapter fallback (treats unknown files as plain text).
     """
     ext = raw_path.suffix.lower()
+    ext_map = _build_ext_map()
 
-    if ext in _EXT_MAP:
-        cls = _EXT_MAP[ext]
-        logger.info("Adapter selected: %s for %s", cls.__name__, raw_path.name)
+    if ext in ext_map:
+        cls = ext_map[ext]
+        logger.info(
+            "Adapter selected: %s for %s",
+            getattr(cls, "__name__", repr(cls)),
+            raw_path.name,
+        )
         return cls()
 
     # MIME sniff fallback for absent or unrecognised extensions
