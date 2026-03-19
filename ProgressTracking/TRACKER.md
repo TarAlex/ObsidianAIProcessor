@@ -67,8 +67,8 @@
 
 - [ DONE ]  s1_normalize.py  → spec: ProgressTracking/specs/s1-normalize.md
 - [ IN_PROGRESS ]  s2_classify.py  (uses prompts/classify.md via ProviderFactory)  → spec: ProgressTracking/specs/s2-classify.md
-- [ IN_PROGRESS ]  s3_dates.py  → spec: ProgressTracking/specs/s3-dates.md
-- [ DONE ]  s4a_summarize.py  (uses prompts/summarize.md)
+- [ DONE ]  s3_dates.py  → spec: ProgressTracking/specs/s3-dates.md
+- [ IN_PROGRESS ]  s4a_summarize.py  (uses prompts/summarize.md)  → spec: ProgressTracking/specs/s4a-summarize.md
 - [ TODO ]  s4b_verbatim.py  ★  (uses prompts/extract_verbatim.md; max 10 blocks)
 - [ TODO ]  s5_deduplicate.py  (ChromaDB similarity)
 - [ TODO ]  s6a_write.py  (Jinja2 templates → vault notes)
@@ -112,7 +112,7 @@
 - [ TODO ]  tests/unit/test_verbatim.py  ★  (round-trip lossless contract)
 - [ TODO ]  tests/unit/test_index_update.py  ★
 - [ TODO ]  tests/unit/test_vector_store.py
-- [ TODO ]  tests/unit/test_s3_dates.py
+- [ DONE ]  tests/unit/test_s3_dates.py
 - [ TODO ]  tests/unit/test_reference_linker.py
 - [ TODO ]  tests/integration/test_pipeline_youtube.py
 - [ TODO ]  tests/integration/test_pipeline_pdf.py
