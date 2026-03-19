@@ -43,7 +43,7 @@
 ## Tool Prompt Files  (prompts/)
 # These are TEXT FILES the tool loads at runtime — the prompt-author skill writes them.
 
-- [ IN_PROGRESS ]  prompts/classify.md  → spec: ProgressTracking/specs/prompt-classify.md
+- [ DONE ]  prompts/classify.md  → spec: ProgressTracking/specs/prompt-classify.md
 - [ TODO ]  prompts/summarize.md
 - [ TODO ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)
 - [ TODO ]  prompts/extract_entities.md
@@ -66,7 +66,7 @@
 ## Pipeline Stages  (agent/stages/)
 
 - [ TODO ]  s1_normalize.py
-- [ TODO ]  s2_classify.py  (uses prompts/classify.md via ProviderFactory)
+- [ DONE ]  s2_classify.py  (uses prompts/classify.md via ProviderFactory)
 - [ TODO ]  s3_dates.py
 - [ TODO ]  s4a_summarize.py  (uses prompts/summarize.md)
 - [ TODO ]  s4b_verbatim.py  ★  (uses prompts/extract_verbatim.md; max 10 blocks)
