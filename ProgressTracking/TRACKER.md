@@ -79,7 +79,7 @@
 
 ## Scheduled Tasks  (agent/tasks/)
 
-- [ TODO ]  outdated_review.py  (weekly scan: stale notes + stale verbatim blocks)
+- [ IN_PROGRESS ]  outdated_review.py  (weekly scan: stale notes + stale verbatim blocks)  → spec: ProgressTracking/specs/outdated-review.md
 - [ TODO ]  index_updater.py  ★  (daily rebuild_all_counts from scratch)
 - [ TODO ]  reference_linker.py
 
