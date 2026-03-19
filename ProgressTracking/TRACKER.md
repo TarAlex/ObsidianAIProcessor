@@ -81,13 +81,13 @@
 
 - [ IN_PROGRESS ]  outdated_review.py  (weekly scan: stale notes + stale verbatim blocks)  → spec: ProgressTracking/specs/outdated-review.md
 - [ IN_PROGRESS ]  index_updater.py  ★  (daily rebuild_all_counts from scratch)  → spec: ProgressTracking/specs/index-updater.md
-- [ IN_PROGRESS ]  reference_linker.py  → spec: ProgressTracking/specs/reference-linker.md
+- [ DONE ]  reference_linker.py  → spec: ProgressTracking/specs/reference-linker.md
 
 ---
 
 ## Vector Store  (agent/vector/)
 
-- [ TODO ]  embedder.py
+- [ IN_PROGRESS ]  embedder.py  → spec: ProgressTracking/specs/embedder-py.md
 - [ TODO ]  store.py  (ChromaDB: add, similarity_search, delete)
 
 ---
@@ -113,7 +113,7 @@
 - [ TODO ]  tests/unit/test_index_update.py  ★
 - [ TODO ]  tests/unit/test_vector_store.py
 - [ DONE ]  tests/unit/test_s3_dates.py
-- [ TODO ]  tests/unit/test_reference_linker.py
+- [ DONE ]  tests/unit/test_reference_linker.py
 - [ TODO ]  tests/integration/test_pipeline_youtube.py
 - [ TODO ]  tests/integration/test_pipeline_pdf.py
 - [ TODO ]  tests/integration/test_pipeline_verbatim.py  ★
