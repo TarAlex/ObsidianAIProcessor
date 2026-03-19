@@ -19,7 +19,7 @@
 ## Source Adapters  (agent/adapters/)
 
 - [ IN_PROGRESS ]  base.py  (BaseAdapter ABC → NormalizedItem)  → spec: ProgressTracking/specs/adapters-base.md
-- [ IN_PROGRESS ]  markdown_adapter.py  (MarkdownAdapter: .md/.txt → NormalizedItem; no LLM; anyio; frontmatter)  → spec: ProgressTracking/specs/markdown-adapter.md
+- [ DONE ]  markdown_adapter.py  (MarkdownAdapter: .md/.txt → NormalizedItem; no LLM; anyio; frontmatter)  → spec: ProgressTracking/specs/markdown-adapter.md
 - [ TODO ]  web_adapter.py  (httpx + markdownify)
 - [ TODO ]  pdf_adapter.py  (pymupdf)
 - [ TODO ]  youtube_adapter.py  (youtube-transcript-api)
