@@ -81,7 +81,7 @@
 
 - [ IN_PROGRESS ]  outdated_review.py  (weekly scan: stale notes + stale verbatim blocks)  → spec: ProgressTracking/specs/outdated-review.md
 - [ IN_PROGRESS ]  index_updater.py  ★  (daily rebuild_all_counts from scratch)  → spec: ProgressTracking/specs/index-updater.md
-- [ TODO ]  reference_linker.py
+- [ IN_PROGRESS ]  reference_linker.py  → spec: ProgressTracking/specs/reference-linker.md
 
 ---
 
