@@ -36,7 +36,7 @@
 - [ DONE ]  lmstudio_provider.py  → spec: ProgressTracking/specs/lmstudio-provider.md
 - [ IN_PROGRESS ]  openai_provider.py  → spec: ProgressTracking/specs/openai-provider.md
 - [ DONE ]  anthropic_provider.py  → spec: ProgressTracking/specs/anthropic-provider.md
-- [ TODO ]  provider_factory.py  (registry + env-driven selection)
+- [ IN_PROGRESS ]  provider_factory.py  (registry + env-driven selection)  → spec: ProgressTracking/specs/provider-factory.md
 
 ---
 
@@ -46,15 +46,15 @@
 - [ DONE ]  prompts/classify.md  → spec: ProgressTracking/specs/prompt-classify.md
 - [ DONE ]  prompts/summarize.md  → spec: ProgressTracking/specs/prompt-summarize.md
 - [ IN_PROGRESS ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)  → spec: ProgressTracking/specs/prompt-extract_verbatim.md
-- [ TODO ]  prompts/extract_entities.md
+- [ IN_PROGRESS ]  prompts/extract_entities.md  → spec: ProgressTracking/specs/prompt-extract_entities.md
 - [ TODO ]  prompts/suggest_tags.md
 
 ---
 
 ## Vault Layer  (agent/vault/)
 
-- [ TODO ]  vault.py  (ObsidianVault: read_note, write_note, ensure_domain_index,
-             update_domain_index, path helpers)
+- [ IN_PROGRESS ]  vault.py  (ObsidianVault: read_note, write_note, ensure_domain_index,
+             update_domain_index, path helpers)  → spec: ProgressTracking/specs/vault-py.md
 - [ TODO ]  note.py  (frontmatter parse/render — python-frontmatter)
 - [ TODO ]  verbatim.py  ★  (render_verbatim_block, parse_verbatim_blocks — round-trip lossless)
 - [ TODO ]  templates.py  (Jinja2 template loader from _AI_META/templates/)

@@ -67,9 +67,12 @@ def test_youtube_adapter_produces_valid_normalized_item(tmp_path):
     async def _run():
         return await YouTubeAdapter().extract(youtube_file, config)
 
+    mock_api = MagicMock()
+    mock_api.return_value.list.return_value = tl
+
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        mock_api,
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         AsyncMock(return_value=("Test Video Title", "Test Channel", None)),
@@ -105,9 +108,12 @@ def test_youtube_adapter_transcript_contains_timestamp_markers(tmp_path):
     async def _run():
         return await YouTubeAdapter().extract(youtube_file, config)
 
+    mock_api = MagicMock()
+    mock_api.return_value.list.return_value = tl
+
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        mock_api,
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         AsyncMock(return_value=("", "", None)),

@@ -1,7 +1,7 @@
 """Unit tests for agent/adapters/youtube_adapter.py.
 
 All external I/O mocked:
-- YouTubeTranscriptApi patched via unittest.mock.patch
+- YouTubeTranscriptApi patched via unittest.mock.patch (instance-based in 1.x+)
 - httpx.AsyncClient mocked via pytest-httpx (httpx_mock fixture)
 - _fetch_watch_metadata patched directly for transcript-focused tests
 
@@ -10,6 +10,7 @@ Async execution driven via anyio.run() — consistent with the rest of the test 
 from __future__ import annotations
 
 import re
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -34,10 +35,11 @@ except ImportError:
     from youtube_transcript_api._errors import VideoUnavailable  # type: ignore[no-redef]
 
 # ---------------------------------------------------------------------------
-# Shared helpers
+# Shared constants
 # ---------------------------------------------------------------------------
 
 _DEFAULT_VIDEO_ID = "dQw4w9WgXcQ"
+# Plain dicts — _format_transcript handles both dict and dataclass access
 _DEFAULT_SEGMENTS = [
     {"start": 0.0, "duration": 5.0, "text": "Hello world"},
     {"start": 5.0, "duration": 5.0, "text": "Second line"},
@@ -45,17 +47,9 @@ _DEFAULT_SEGMENTS = [
 ]
 _NO_METADATA = AsyncMock(return_value=("", "", None))
 
-# Patch target for the YouTubeTranscriptApi class (instance-based in 1.x+)
-_API_CLASS_PATCH = "agent.adapters.youtube_adapter.YouTubeTranscriptApi"
-
-
-def _patch_api(transcript_list_mock: MagicMock):
-    """Return a patch context that makes YouTubeTranscriptApi().list() return tl."""
-    mock_cls = MagicMock()
-    mock_instance = MagicMock()
-    mock_cls.return_value = mock_instance
-    mock_instance.list.return_value = transcript_list_mock
-    return patch(_API_CLASS_PATCH, mock_cls)
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
 
 
 def _make_config() -> AgentConfig:
@@ -87,13 +81,7 @@ def _make_transcript_list_mock(
     manual: MagicMock | None = None,
     generated: MagicMock | None = None,
 ) -> MagicMock:
-    """Build a mock TranscriptList.
-
-    - manual=<Transcript>  → find_manually_created_transcript returns it
-    - manual=None          → find_manually_created_transcript raises NoTranscriptFound
-    - generated=<Transcript>  → find_generated_transcript returns it
-    - generated=None          → find_generated_transcript raises NoTranscriptFound
-    """
+    """Build a mock TranscriptList."""
     tl = MagicMock()
     tl.__iter__ = MagicMock(side_effect=lambda: iter(transcripts))
 
@@ -101,17 +89,33 @@ def _make_transcript_list_mock(
         tl.find_manually_created_transcript.return_value = manual
     else:
         tl.find_manually_created_transcript.side_effect = NoTranscriptFound(
-            "test_vid", ["en"], []
+            "test_vid", ["en"], MagicMock()
         )
 
     if generated is not None:
         tl.find_generated_transcript.return_value = generated
     else:
         tl.find_generated_transcript.side_effect = NoTranscriptFound(
-            "test_vid", ["en"], []
+            "test_vid", ["en"], MagicMock()
         )
 
     return tl
+
+
+def _make_api_cls_mock(transcript_list=None, side_effect=None) -> MagicMock:
+    """Return a mock class for YouTubeTranscriptApi.
+
+    - transcript_list: YouTubeTranscriptApi().list(video_id) returns this
+    - side_effect: YouTubeTranscriptApi().list(video_id) raises this
+    """
+    mock_cls = MagicMock()
+    mock_instance = MagicMock()
+    mock_cls.return_value = mock_instance
+    if side_effect is not None:
+        mock_instance.list.side_effect = side_effect
+    else:
+        mock_instance.list.return_value = transcript_list
+    return mock_cls
 
 
 def _run(path: Path, config: AgentConfig) -> NormalizedItem:
@@ -133,8 +137,8 @@ def test_valid_youtube_file_returns_normalized_item(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -157,18 +161,19 @@ def test_youtu_be_short_url_extracts_video_id(tmp_path):
     config = _make_config()
     t = _make_transcript_mock(_DEFAULT_SEGMENTS)
     tl = _make_transcript_list_mock([t], manual=t)
+    mock_api = _make_api_cls_mock(transcript_list=tl)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
-    ) as mock_list, patch(
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        mock_api,
+    ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
     ):
         item = _run(path, config)
 
     assert item.extra_metadata["video_id"] == "ABC123"
-    mock_list.assert_called_once_with("ABC123")
+    mock_api.return_value.list.assert_called_once_with("ABC123")
 
 
 # ---------------------------------------------------------------------------
@@ -184,8 +189,8 @@ def test_url_with_time_param_extracts_clean_video_id(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -206,18 +211,19 @@ def test_mobile_youtube_url_extracts_video_id(tmp_path):
     config = _make_config()
     t = _make_transcript_mock(_DEFAULT_SEGMENTS)
     tl = _make_transcript_list_mock([t], manual=t)
+    mock_api = _make_api_cls_mock(transcript_list=tl)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
-    ) as mock_list, patch(
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        mock_api,
+    ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
     ):
         item = _run(path, config)
 
     assert item.extra_metadata["video_id"] == "MOBILE1"
-    mock_list.assert_called_once_with("MOBILE1")
+    mock_api.return_value.list.assert_called_once_with("MOBILE1")
 
 
 # ---------------------------------------------------------------------------
@@ -234,8 +240,8 @@ def test_manual_transcript_is_auto_generated_false(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -260,8 +266,8 @@ def test_auto_generated_transcript_is_auto_generated_true(tmp_path):
     tl = _make_transcript_list_mock([t], manual=None, generated=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -283,8 +289,8 @@ def test_transcripts_disabled_raises_adapter_error(tmp_path):
     config = _make_config()
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        side_effect=TranscriptsDisabled(_DEFAULT_VIDEO_ID),
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(side_effect=TranscriptsDisabled(_DEFAULT_VIDEO_ID)),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -305,8 +311,8 @@ def test_video_unavailable_raises_adapter_error(tmp_path):
     config = _make_config()
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        side_effect=VideoUnavailable(_DEFAULT_VIDEO_ID),
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(side_effect=VideoUnavailable(_DEFAULT_VIDEO_ID)),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -329,8 +335,8 @@ def test_no_transcript_found_raises_adapter_error(tmp_path):
     tl = _make_transcript_list_mock([t], manual=None, generated=None)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -357,8 +363,8 @@ def test_empty_transcript_text_raises_adapter_error(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -507,8 +513,8 @@ def test_raw_id_format(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -532,8 +538,8 @@ def test_file_mtime_is_utc_aware(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -558,8 +564,8 @@ def test_raw_file_path_equals_input(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -583,8 +589,8 @@ def test_language_set_from_transcript(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -670,8 +676,8 @@ def test_extra_metadata_has_all_required_keys(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -728,8 +734,8 @@ def test_title_fallback_when_no_metadata(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -752,8 +758,8 @@ def test_url_field_matches_file_content(tmp_path):
     tl = _make_transcript_list_mock([t], manual=t)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        _make_api_cls_mock(transcript_list=tl),
     ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
@@ -778,15 +784,16 @@ def test_comment_lines_before_url_are_skipped(tmp_path):
     config = _make_config()
     t = _make_transcript_mock(_DEFAULT_SEGMENTS)
     tl = _make_transcript_list_mock([t], manual=t)
+    mock_api = _make_api_cls_mock(transcript_list=tl)
 
     with patch(
-        "agent.adapters.youtube_adapter.YouTubeTranscriptApi.list_transcripts",
-        return_value=tl,
-    ) as mock_list, patch(
+        "agent.adapters.youtube_adapter.YouTubeTranscriptApi",
+        mock_api,
+    ), patch(
         "agent.adapters.youtube_adapter._fetch_watch_metadata",
         _NO_METADATA,
     ):
         item = _run(path, config)
 
-    mock_list.assert_called_once_with(_DEFAULT_VIDEO_ID)
+    mock_api.return_value.list.assert_called_once_with(_DEFAULT_VIDEO_ID)
     assert item.extra_metadata["video_id"] == _DEFAULT_VIDEO_ID
