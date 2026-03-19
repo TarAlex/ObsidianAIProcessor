@@ -20,7 +20,7 @@
 
 - [ IN_PROGRESS ]  base.py  (BaseAdapter ABC → NormalizedItem)  → spec: ProgressTracking/specs/adapters-base.md
 - [ DONE ]  markdown_adapter.py  (MarkdownAdapter: .md/.txt → NormalizedItem; no LLM; anyio; frontmatter)  → spec: ProgressTracking/specs/markdown-adapter.md
-- [ TODO ]  web_adapter.py  (httpx + markdownify)
+- [ IN_PROGRESS ]  web_adapter.py  (httpx + markdownify)  → spec: ProgressTracking/specs/web-adapter.md
 - [ TODO ]  pdf_adapter.py  (pymupdf)
 - [ TODO ]  youtube_adapter.py  (youtube-transcript-api)
 - [ TODO ]  audio_adapter.py  (openai-whisper)
@@ -32,8 +32,8 @@
 
 - [ IN_PROGRESS ]  base.py  (BaseProvider ABC: complete(prompt_name, ctx) → str)  → spec: ProgressTracking/specs/llm-base.md
 - [ IN_PROGRESS ]  prompt_loader.py  (reads prompts/*.md, caches)  → spec: ProgressTracking/specs/prompt-loader.md
-- [ TODO ]  ollama_provider.py  (default / privacy-first)
-- [ TODO ]  lmstudio_provider.py
+- [ IN_PROGRESS ]  ollama_provider.py  (default / privacy-first)  → spec: ProgressTracking/specs/ollama-provider.md
+- [ IN_PROGRESS ]  lmstudio_provider.py  → spec: ProgressTracking/specs/lmstudio-provider.md
 - [ TODO ]  openai_provider.py
 - [ TODO ]  anthropic_provider.py
 - [ TODO ]  provider_factory.py  (registry + env-driven selection)
@@ -44,7 +44,7 @@
 # These are TEXT FILES the tool loads at runtime — the prompt-author skill writes them.
 
 - [ DONE ]  prompts/classify.md  → spec: ProgressTracking/specs/prompt-classify.md
-- [ TODO ]  prompts/summarize.md
+- [ IN_PROGRESS ]  prompts/summarize.md  → spec: ProgressTracking/specs/prompt-summarize.md
 - [ TODO ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)
 - [ TODO ]  prompts/extract_entities.md
 - [ TODO ]  prompts/suggest_tags.md
