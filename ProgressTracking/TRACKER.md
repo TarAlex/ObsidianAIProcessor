@@ -35,7 +35,7 @@
 - [ IN_PROGRESS ]  ollama_provider.py  (default / privacy-first)  → spec: ProgressTracking/specs/ollama-provider.md
 - [ DONE ]  lmstudio_provider.py  → spec: ProgressTracking/specs/lmstudio-provider.md
 - [ IN_PROGRESS ]  openai_provider.py  → spec: ProgressTracking/specs/openai-provider.md
-- [ IN_PROGRESS ]  anthropic_provider.py  → spec: ProgressTracking/specs/anthropic-provider.md
+- [ DONE ]  anthropic_provider.py  → spec: ProgressTracking/specs/anthropic-provider.md
 - [ TODO ]  provider_factory.py  (registry + env-driven selection)
 
 ---
