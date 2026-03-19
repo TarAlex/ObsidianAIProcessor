@@ -72,7 +72,7 @@
 - [ IN_PROGRESS ]  s4b_verbatim.py  ★  (uses prompts/extract_verbatim.md; max 10 blocks)  → spec: ProgressTracking/specs/s4b-verbatim.md
 - [ IN_PROGRESS ]  s5_deduplicate.py  (ChromaDB similarity)  → spec: ProgressTracking/specs/s5-deduplicate.md
 - [ IN_PROGRESS ]  s6a_write.py  (Jinja2 templates → vault notes)  → spec: ProgressTracking/specs/s6a-write.md
-- [ TODO ]  s6b_index_update.py  ★  (ensure_domain_index + increment + parent rollup)
+- [ IN_PROGRESS ]  s6b_index_update.py  ★  (ensure_domain_index + increment + parent rollup)  → spec: ProgressTracking/specs/s6b-index-update.md
 - [ DONE ]  s7_archive.py
 
 ---
