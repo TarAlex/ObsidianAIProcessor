@@ -1,6 +1,6 @@
 # Tasks: Tool Prompt Files (prompts/)
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 **Use `/dev-prompt-author` (prompt-author skill) for these items, not `/dev-builder`.**
@@ -38,7 +38,7 @@ Architecture ref: docs/ARCHITECTURE.md §9 Prompts (classify.md schema)
 Special constraints:
 - Static markdown file; target Pydantic model: ClassificationResult; output JSON only; local LLM compatible (no function calling); few-shot examples; list input variables
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/prompt-classify.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **Implementation** (use `/dev-prompt-author` or @dev-prompt-author)
@@ -75,7 +75,7 @@ Architecture ref: docs/ARCHITECTURE.md §9, docs/requirements.md §6.1
 Special constraints:
 - Target model: SummaryResult; plain JSON; local LLM compatible; few-shot
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/prompt-summarize.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **Implementation**
@@ -83,7 +83,7 @@ Run /plan
 ```
 Create prompts/summarize.md using dev-prompt-author workflow.
 
-Before writing: Read spec at .cursor/dev/specs/prompt-summarize.md if present; docs/ARCHITECTURE.md §9; agent/core/models.py (SummaryResult). Output JSON only, no function calling. Validate via Ollama.
+Before writing: Read spec at ProgressTracking/specs/prompt-summarize.md if present; docs/ARCHITECTURE.md §9; agent/core/models.py (SummaryResult). Output JSON only, no function calling. Validate via Ollama.
 ```
 
 ---
@@ -107,7 +107,7 @@ Architecture ref: docs/ARCHITECTURE.md §9 extract_verbatim.md, Appendix A — V
 Special constraints:
 - Embed Appendix A decision tree; output JSON array of VerbatimBlock-shaped objects; max 10 blocks (instruct model to keep highest-signal); staleness defaults: code/prompt=high, quote=low, transcript=medium; local LLM compatible
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/prompt-extract_verbatim.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **Implementation**
@@ -139,7 +139,7 @@ Architecture ref: docs/ARCHITECTURE.md §9, requirements §3
 Special constraints:
 - Entity extraction output schema; plain JSON; local LLM compatible; few-shot
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/prompt-extract_entities.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **Implementation**
@@ -169,7 +169,7 @@ Architecture ref: docs/ARCHITECTURE.md §9, docs/requirements.md §4 Tag Taxonom
 Special constraints:
 - Tag suggestion output; constrained to taxonomy; plain JSON; local LLM compatible
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/prompt-suggest_tags.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **Implementation**

@@ -1,4 +1,4 @@
-> ROUTER ONLY. Full spec in docs/. Current work queue in .cursor/dev/TRACKER.md.
+> ROUTER ONLY. Full spec in docs/. Current work queue in ProgressTracking/TRACKER.md.
 ---
 
 ## What this repo is
@@ -11,8 +11,8 @@ domain/subdomain _index.md files. Local-LLM-first; cloud LLMs opt-in.
 Source of truth:
 - Architecture: `docs/ARCHITECTURE.md` (v1.1) — never contradict it
 - Requirements:  `docs/REQUIREMENTS.md`  (v1.1)
-- Scope tracker: `.cursor/dev/TRACKER.md`  — check before ANY task
-- Lessons:       `.cursor/dev/lessons.md`  — read at session start
+- Scope tracker: `ProgressTracking/TRACKER.md`  — check before ANY task
+- Lessons:       `ProgressTracking/lessons.md`  — read at session start
 
 ---
 
@@ -34,12 +34,13 @@ Source of truth:
 
 | Task | Skill | Model |
 |---|---|---|
-| Design / spec a new module | `/dev-planner` | opus |
-| Implement a module from spec | `/dev-builder` | sonnet (forked) |
-| Write or fix tests | `/dev-tester` | sonnet (forked) |
-| Review before marking DONE | `/dev-reviewer` | opus |
+| Generate a feature-level decomposition | `/spec` → dev:spec | opus |
+| Design / spec a new module | `/plan` → dev:planner | opus |
+| Implement a module from spec | `/build` → dev:builder | sonnet (forked) |
+| Write or fix tests | `/test` → dev:tester | sonnet (forked) |
+| Review before marking DONE | `/review` → dev:reviewer | opus |
 | Write or refine a tool prompt file | `/dev-prompt-author` | opus |
-| Update TRACKER / lessons only | `/dev-tracker` | haiku |
+| Update TRACKER / lessons only | `/done` + `/log` → dev:tracker | haiku |
 
 Route explicitly. Do not implement and spec in the same session.
 
@@ -71,19 +72,28 @@ agent/stages/
 
 ## Per-session task discipline
 
-1. Check `.cursor/dev/TRACKER.md` — pick one TODO item
-2. Write plan to `.cursor/dev/todo.md` — checkable items only
+```
+0. /spec "Section"  — generate feature decomposition (once per section)
+1. Check TRACKER.md — pick one TODO item in order from feature spec
+2. /plan SLUG       — write module spec
+3. /build SLUG      — implement + pytest green
+4. /review + /done + /log — close item
+```
+
+Steps in detail:
+1. Check `ProgressTracking/TRACKER.md` — pick one TODO item (follow feature spec order)
+2. `/plan SLUG` — write module spec if not already in `ProgressTracking/specs/`
 3. Check in with user before writing code
-4. Implement → run `pytest` → fix until green
+4. `/build SLUG` → run `pytest` → fix until green
 5. Run `/review MODULE_PATH` before marking done
-6. Run `/done "item name"` — routes to `/dev-tracker`
+6. Run `/done "item name"` + `/log "lesson"` — routes to `dev:tracker`
 7. Run `/clear` before next feature session
 
 ---
 
 ## Token hygiene
 
-- This file ≤ 200 lines. Details live in docs/, .cursor/dev/, .cursor/skills/
+- This file ≤ 200 lines. Details live in docs/, ProgressTracking/, .claude/skills/
 - `/dev-builder` and `/dev-tester` use forked context — implementation noise stays isolated
 - `/dev-tracker` uses haiku — purely mechanical edits
 - `/clear` between features — never accumulate multiple feature contexts

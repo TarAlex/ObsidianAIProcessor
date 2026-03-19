@@ -1,6 +1,6 @@
 # Tasks: Scheduled Tasks (agent/tasks/)
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -34,13 +34,13 @@ Architecture ref: docs/ARCHITECTURE.md §12 Outdated Review Task, docs/requireme
 Special constraints:
 - Two passes: stale notes (review_after < today) AND stale verbatim blocks (staleness_risk=HIGH, added_at older than config threshold); output to _AI_META/outdated-review.md; MUST NOT auto-archive or auto-delete — human review only; emit staleness.scan.started, staleness.found, staleness.scan.completed
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/outdated-review.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/outdated-review.md
+Implement the spec at ProgressTracking/specs/outdated-review.md
 
 Before writing any code:
 1. Read the full spec
@@ -71,13 +71,13 @@ Architecture ref: docs/ARCHITECTURE.md §13 Index Updater Task
 Special constraints:
 - rebuild_all_counts() walks 02_KNOWLEDGE/, counts per domain_path, rewrites note_count + last_updated in every _index.md; corrects manual edits; only frontmatter; never touch body (Bases)
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/index-updater.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/index-updater.md
+Implement the spec at ProgressTracking/specs/index-updater.md
 
 Before writing any code:
 1. Read the full spec
@@ -109,13 +109,13 @@ Architecture ref: docs/requirements.md §2.2, docs/ARCHITECTURE.md (references)
 Special constraints:
 - Link notes to REFERENCES/ (people, work projects, personal projects); no auto-delete; human-review safe
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/reference-linker.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/reference-linker.md
+Implement the spec at ProgressTracking/specs/reference-linker.md
 
 Before writing any code:
 1. Read the full spec

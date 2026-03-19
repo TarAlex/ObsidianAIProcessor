@@ -1,6 +1,6 @@
 # Tasks: CLI Entry Point
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -32,13 +32,13 @@ Architecture ref: docs/ARCHITECTURE.md §14 CLI Interface
 Special constraints:
 - Click CLI; commands: run, process-file, rebuild-indexes, outdated-review; --config, --dry-run; no writes when --dry-run; graceful errors; all paths from config
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/main-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/main-py.md
+Implement the spec at ProgressTracking/specs/main-py.md
 
 Before writing any code:
 1. Read the full spec

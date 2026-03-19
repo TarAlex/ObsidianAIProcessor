@@ -1,6 +1,6 @@
 # Tasks: Source Adapters (agent/adapters/)
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -38,13 +38,13 @@ Architecture ref: docs/ARCHITECTURE.md §2, docs/requirements.md §5
 Special constraints:
 - Abstract base only; output NormalizedItem; no LLM, no vault writes; all paths from config
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/adapters-base.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/adapters-base.md
+Implement the spec at ProgressTracking/specs/adapters-base.md
 
 Before writing any code:
 1. Read the full spec
@@ -75,13 +75,13 @@ Architecture ref: docs/requirements.md §5.1
 Special constraints:
 - Markdown files → NormalizedItem; no LLM; read-only from inbox path
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/markdown-adapter.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/markdown-adapter.md
+Implement the spec at ProgressTracking/specs/markdown-adapter.md
 
 Before writing any code:
 1. Read the full spec
@@ -112,13 +112,13 @@ Architecture ref: docs/requirements.md §5.1
 Special constraints:
 - httpx for fetch; markdownify for HTML→markdown; no LLM; no hardcoded URLs
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/web-adapter.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/web-adapter.md
+Implement the spec at ProgressTracking/specs/web-adapter.md
 
 Before writing any code:
 1. Read the full spec
@@ -149,13 +149,13 @@ Architecture ref: docs/requirements.md §5.1
 Special constraints:
 - pymupdf for extraction; output NormalizedItem; no LLM
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/pdf-adapter.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/pdf-adapter.md
+Implement the spec at ProgressTracking/specs/pdf-adapter.md
 
 Before writing any code:
 1. Read the full spec
@@ -186,13 +186,13 @@ Architecture ref: docs/requirements.md §5.2
 Special constraints:
 - youtube-transcript-api for captions; no LLM; no hardcoded API keys
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/youtube-adapter.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/youtube-adapter.md
+Implement the spec at ProgressTracking/specs/youtube-adapter.md
 
 Before writing any code:
 1. Read the full spec
@@ -223,13 +223,13 @@ Architecture ref: docs/requirements.md §5.2
 Special constraints:
 - openai-whisper for transcription; local-first; no cloud API required for basic flow
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/audio-adapter.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/audio-adapter.md
+Implement the spec at ProgressTracking/specs/audio-adapter.md
 
 Before writing any code:
 1. Read the full spec
@@ -260,13 +260,13 @@ Architecture ref: docs/requirements.md §5 (extensibility)
 Special constraints:
 - MS Teams source; Phase 2 may add Graph API polling — Phase 1 stub or minimal interface only if needed
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/teams-adapter.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/teams-adapter.md
+Implement the spec at ProgressTracking/specs/teams-adapter.md
 
 Before writing any code:
 1. Read the full spec

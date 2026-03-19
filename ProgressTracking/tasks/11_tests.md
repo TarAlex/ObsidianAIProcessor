@@ -1,6 +1,6 @@
 # Tasks: Tests
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 Implement tests in the same order as implementation: unit tests alongside or immediately after the module; integration tests once pipeline stages exist.
@@ -47,13 +47,13 @@ Architecture ref: docs/ARCHITECTURE.md §3, §17 Testing Strategy
 Special constraints:
 - Unit tests only; cover all v1.1 models (NormalizedItem, ClassificationResult, SummaryResult, VerbatimBlock, VerbatimType, StatenessRisk, ProcessingStatus); validation, serialization; use fixtures
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/test-models.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/test-models.md
+Implement the spec at ProgressTracking/specs/test-models.md
 
 Before writing any code:
 1. Read the full spec
@@ -82,7 +82,7 @@ Context:
 Special constraints:
 - Unit tests; mock or temp dir for vault root; test read_note, write_note (atomic), ensure_domain_index (no overwrite), update_domain_index (frontmatter only)
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/test-vault.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
@@ -110,7 +110,7 @@ Context:
 Special constraints:
 - Round-trip: render_verbatim_block(block) → parse_verbatim_blocks(output)[0] equals block; content byte-identical; all VerbatimType values; malformed header skipped silently; load verbatim-contract skill
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/test-verbatim.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
@@ -138,7 +138,7 @@ Context:
 Special constraints:
 - rebuild_all_counts() corrects manual note_count; write 3 notes to professional_dev/ai_tools/ → subdomain and domain _index.md note_count == 3; load index-update-contract skill
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/test-index_update.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
@@ -166,7 +166,7 @@ Context:
 Special constraints:
 - Unit tests for add, similarity_search, delete; use temp or in-memory ChromaDB
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/test-vector_store.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
@@ -194,7 +194,7 @@ Context:
 Special constraints:
 - Unit tests for Stage 3 date extraction; ClassificationResult → dated NormalizedItem
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/test-s3_dates.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
@@ -222,7 +222,7 @@ Context:
 Special constraints:
 - Unit tests for reference linking; mock vault/references
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/test-reference_linker.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
@@ -249,6 +249,8 @@ Context:
 
 Special constraints:
 - Use tests/fixtures/vault_structure/; pipeline tests use real or mocked LLM per requirements; test_llm_ollama validates prompt output parses to target model
+
+Output: Write the spec to ProgressTracking/specs/test-integration.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
@@ -275,6 +277,8 @@ Context:
 
 Special constraints:
 - Add fixtures to tests/fixtures/; vault_structure/ as base for integration; never generate fixture data inline in tests
+
+Output: Write the spec to ProgressTracking/specs/test-fixtures.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**

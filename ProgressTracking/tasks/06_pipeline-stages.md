@@ -1,6 +1,6 @@
 # Tasks: Pipeline Stages (agent/stages/)
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -40,13 +40,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 1
 Special constraints:
 - SourceAdapter → NormalizedItem; stateless; no LLM; no vault writes
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s1-normalize.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s1-normalize.md
+Implement the spec at ProgressTracking/specs/s1-normalize.md
 
 Before writing any code:
 1. Read the full spec
@@ -77,13 +77,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 2
 Special constraints:
 - NormalizedItem → ClassificationResult; use ProviderFactory only; no direct HTTP; domain_path and staleness_risk in output
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s2-classify.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s2-classify.md
+Implement the spec at ProgressTracking/specs/s2-classify.md
 
 Before writing any code:
 1. Read the full spec
@@ -115,13 +115,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 3
 Special constraints:
 - ClassificationResult → dated NormalizedItem; stateless; no vault writes
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s3-dates.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s3-dates.md
+Implement the spec at ProgressTracking/specs/s3-dates.md
 
 Before writing any code:
 1. Read the full spec
@@ -152,13 +152,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 4a
 Special constraints:
 - Dated item → SummaryResult; ProviderFactory only; prompts/summarize.md
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s4a-summarize.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s4a-summarize.md
+Implement the spec at ProgressTracking/specs/s4a-summarize.md
 
 Before writing any code:
 1. Read the full spec
@@ -190,13 +190,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 4b, §7 Verbatim Module
 Special constraints:
 - VerbatimBlock.content byte-identical to source; max 10 blocks (discard lowest-signal); staleness defaults by type; use ProviderFactory; load verbatim-contract skill
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s4b-verbatim.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s4b-verbatim.md
+Implement the spec at ProgressTracking/specs/s4b-verbatim.md
 
 Before writing any code:
 1. Read the full spec
@@ -228,13 +228,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 5, §15 Vector Store
 Special constraints:
 - SummaryResult → dedup decision; ChromaDB similarity_search; no vault writes in stage
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s5-deduplicate.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s5-deduplicate.md
+Implement the spec at ProgressTracking/specs/s5-deduplicate.md
 
 Before writing any code:
 1. Read the full spec
@@ -265,13 +265,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 6a, §8, §11
 Special constraints:
 - Approved item → vault note; ONLY ObsidianVault.write_note; Jinja2 from templates; verbatim blocks rendered via verbatim.py
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s6a-write.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s6a-write.md
+Implement the spec at ProgressTracking/specs/s6a-write.md
 
 Before writing any code:
 1. Read the full spec
@@ -303,13 +303,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 6b
 Special constraints:
 - After note write: ensure_domain_index then update_domain_index for subdomain and domain; only frontmatter; never touch _index.md body (Bases queries)
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s6b-index-update.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s6b-index-update.md
+Implement the spec at ProgressTracking/specs/s6b-index-update.md
 
 Before writing any code:
 1. Read the full spec
@@ -341,13 +341,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 7
 Special constraints:
 - Processed item → move to 05_ARCHIVE/ via vault; stateless; no LLM
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/s7-archive.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/s7-archive.md
+Implement the spec at ProgressTracking/specs/s7-archive.md
 
 Before writing any code:
 1. Read the full spec

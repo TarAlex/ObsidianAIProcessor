@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where codemie-claude-acp:*)",
+      "Bash(where claude:*)",
+      "Bash(echo:*)",
+      "Bash(where claude-code-acp:*)",
+      "Bash(npm ls:*)",
+      "Bash(ls:*)",
+      "Bash(\"/c/Users/AliaksandrTarasevich/AppData/Roaming/npm/codemie.cmd\":*)",
+      "Bash(\"/c/Users/AliaksandrTarasevich/AppData/Roaming/npm/codemie.cmd\" doctor:*)",
+      "Bash(\"/c/Users/AliaksandrTarasevich/AppData/Roaming/npm/codemie.cmd\" profile:*)",
+      "Bash(bun:*)",
+      "Bash(node:*)",
+      "Bash(gcc:*)",
+      "Bash(npx:*)",
+      "Bash(where codemie:*)",
+      "Bash(where:*)",
+      "Bash(codemie-claude:*)",
+      "Bash(do:*)",
+      "Bash(grep:*)",
+      "Bash(python:*)"
+    ]
+  }
+}

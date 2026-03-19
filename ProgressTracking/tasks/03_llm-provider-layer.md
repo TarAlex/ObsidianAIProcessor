@@ -1,6 +1,6 @@
 # Tasks: LLM Provider Layer (agent/llm/)
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -38,13 +38,13 @@ Architecture ref: docs/ARCHITECTURE.md §4 LLM Provider Abstraction
 Special constraints:
 - Never call HTTP directly from stages; complete(prompt_name, ctx) returns str; no function-calling in contract
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/llm-base.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/llm-base.md
+Implement the spec at ProgressTracking/specs/llm-base.md
 
 Before writing any code:
 1. Read the full spec
@@ -76,13 +76,13 @@ Architecture ref: docs/ARCHITECTURE.md §9 Prompts
 Special constraints:
 - Load from prompts/*.md; {{variable}} substitution; cache at startup; no vault dependency
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/prompt-loader.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/prompt-loader.md
+Implement the spec at ProgressTracking/specs/prompt-loader.md
 
 Before writing any code:
 1. Read the full spec
@@ -113,13 +113,13 @@ Architecture ref: docs/ARCHITECTURE.md §4, docs/requirements.md §7
 Special constraints:
 - Local Ollama; default provider; no API key required; plain JSON in completion text
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/ollama-provider.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/ollama-provider.md
+Implement the spec at ProgressTracking/specs/ollama-provider.md
 
 Before writing any code:
 1. Read the full spec
@@ -151,13 +151,13 @@ Architecture ref: docs/ARCHITECTURE.md §4, docs/requirements.md §7
 Special constraints:
 - LM Studio local API; same contract as Ollama (plain JSON); opt-in via config
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/lmstudio-provider.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/lmstudio-provider.md
+Implement the spec at ProgressTracking/specs/lmstudio-provider.md
 
 Before writing any code:
 1. Read the full spec
@@ -189,13 +189,13 @@ Architecture ref: docs/ARCHITECTURE.md §4, docs/requirements.md §7
 Special constraints:
 - OpenAI API; API key from config/env only; opt-in; plain JSON output required
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/openai-provider.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/openai-provider.md
+Implement the spec at ProgressTracking/specs/openai-provider.md
 
 Before writing any code:
 1. Read the full spec
@@ -227,13 +227,13 @@ Architecture ref: docs/ARCHITECTURE.md §4, docs/requirements.md §7
 Special constraints:
 - Anthropic API; API key from config/env only; opt-in; plain JSON output required
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/anthropic-provider.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/anthropic-provider.md
+Implement the spec at ProgressTracking/specs/anthropic-provider.md
 
 Before writing any code:
 1. Read the full spec
@@ -265,13 +265,13 @@ Architecture ref: docs/ARCHITECTURE.md §4
 Special constraints:
 - ProviderFactory.get(config.llm) returns BaseProvider; registry; env-driven; no direct HTTP from pipeline
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/provider-factory.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/provider-factory.md
+Implement the spec at ProgressTracking/specs/provider-factory.md
 
 Before writing any code:
 1. Read the full spec

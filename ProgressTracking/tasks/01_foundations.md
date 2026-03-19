@@ -1,6 +1,6 @@
 # Tasks: Foundations
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -37,13 +37,13 @@ Architecture ref: docs/ARCHITECTURE.md §2 Project Structure, §16 Dependencies
 Special constraints:
 - Python 3.11+ only; all paths relative to project root; no hardcoded vault paths or API keys
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/pyproject-scaffold.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
-**/build session** (after spec exists at `.cursor/dev/specs/pyproject-scaffold.md`)
+**/build session** (after spec exists at `ProgressTracking/specs/pyproject-scaffold.md`)
 
 ```
-Implement the spec at .cursor/dev/specs/pyproject-scaffold.md
+Implement the spec at ProgressTracking/specs/pyproject-scaffold.md
 
 Before writing any code:
 1. Read the full spec
@@ -74,13 +74,13 @@ Architecture ref: docs/ARCHITECTURE.md §10 Configuration Schema
 Special constraints:
 - All paths and API keys from config/env — no hardcoding; Pydantic v2 for Config model
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/config-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/config-py.md
+Implement the spec at ProgressTracking/specs/config-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -111,13 +111,13 @@ Architecture ref: docs/ARCHITECTURE.md §3 Core Data Models, docs/requirements.m
 Special constraints:
 - Pydantic v2 only; match v1.1 schema exactly; VerbatimBlock has content, type, staleness_risk, added_at; domain_path on ClassificationResult
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/models-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/models-py.md
+Implement the spec at ProgressTracking/specs/models-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -148,13 +148,13 @@ Architecture ref: docs/ARCHITECTURE.md §5 Pipeline Implementation
 Special constraints:
 - anyio for async; failed items route to to_review/; stateless stages only
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/pipeline-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/pipeline-py.md
+Implement the spec at ProgressTracking/specs/pipeline-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -185,13 +185,13 @@ Architecture ref: docs/requirements.md §5.3 Inbox Monitoring
 Special constraints:
 - Watch inbox path from config; no hardcoded paths; cross-platform (anyio/watchdog)
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/watcher-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/watcher-py.md
+Implement the spec at ProgressTracking/specs/watcher-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -222,13 +222,13 @@ Architecture ref: docs/ARCHITECTURE.md §12, §13
 Special constraints:
 - APScheduler or equivalent; weekly for outdated-review, daily for index-rebuild; no hardcoded paths
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/scheduler-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/scheduler-py.md
+Implement the spec at ProgressTracking/specs/scheduler-py.md
 
 Before writing any code:
 1. Read the full spec

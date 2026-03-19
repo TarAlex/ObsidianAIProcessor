@@ -1,6 +1,6 @@
 # Tasks: Setup Scripts
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -33,13 +33,13 @@ Architecture ref: docs/ARCHITECTURE.md §8, §11; docs/requirements.md §2.3
 Special constraints:
 - First-run only; create _index.md from templates where absent; never overwrite existing _index.md; paths from config
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/setup-vault.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/setup-vault.md
+Implement the spec at ProgressTracking/specs/setup-vault.md
 
 Before writing any code:
 1. Read the full spec
@@ -70,13 +70,13 @@ Architecture ref: docs/ARCHITECTURE.md §13
 Special constraints:
 - Rebuild all domain index counts; idempotent; paths from config; safe to run multiple times
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/reindex.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/reindex.md
+Implement the spec at ProgressTracking/specs/reindex.md
 
 Before writing any code:
 1. Read the full spec

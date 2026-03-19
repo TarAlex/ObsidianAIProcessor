@@ -1,6 +1,6 @@
 # Tasks: Vault Layer (agent/vault/)
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -37,13 +37,13 @@ Architecture ref: docs/ARCHITECTURE.md §8 Vault Module
 Special constraints:
 - write_note atomic: write to .tmp then rename; ensure_domain_index must NEVER overwrite existing _index.md; update_domain_index only touches frontmatter — body (Bases queries) never modified; all paths relative to vault root; no hardcoded paths
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/vault-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/vault-py.md
+Implement the spec at ProgressTracking/specs/vault-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -75,13 +75,13 @@ Architecture ref: docs/ARCHITECTURE.md §8, docs/requirements.md §3
 Special constraints:
 - python-frontmatter; parse and render frontmatter; no vault path writes (used by vault.py)
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/note-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/note-py.md
+Implement the spec at ProgressTracking/specs/note-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -112,13 +112,13 @@ Architecture ref: docs/ARCHITECTURE.md §7 Verbatim Module
 Special constraints:
 - render_verbatim_block(block) → parse_verbatim_blocks(output)[0] must equal block with content byte-identical; parse must handle malformed blocks silently (skip, no raise); zero pipeline or vault imports (pure transform)
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/vault-verbatim.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/vault-verbatim.md
+Implement the spec at ProgressTracking/specs/vault-verbatim.md
 
 Before writing any code:
 1. Read the full spec
@@ -150,13 +150,13 @@ Architecture ref: docs/ARCHITECTURE.md §11 Templates
 Special constraints:
 - Jinja2; load from _AI_META/templates/; no writes to vault content; paths from config
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/templates-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/templates-py.md
+Implement the spec at ProgressTracking/specs/templates-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -187,13 +187,13 @@ Architecture ref: docs/requirements.md §2.2 REFERENCES
 Special constraints:
 - CRUD for people, work projects, personal projects; REFERENCES/ path from config; no hardcoded paths
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/references-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/references-py.md
+Implement the spec at ProgressTracking/specs/references-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -224,13 +224,13 @@ Architecture ref: docs/ARCHITECTURE.md §6 Stage 7, docs/requirements.md (archiv
 Special constraints:
 - Move processed items to 05_ARCHIVE/; atomic move; path from config
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/archive-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/archive-py.md
+Implement the spec at ProgressTracking/specs/archive-py.md
 
 Before writing any code:
 1. Read the full spec

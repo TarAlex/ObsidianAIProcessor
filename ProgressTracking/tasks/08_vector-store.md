@@ -1,6 +1,6 @@
 # Tasks: Vector Store (agent/vector/)
 
-Source: [.cursor/dev/TRACKER.md](../TRACKER.md).  
+Source: [ProgressTracking/TRACKER.md](../TRACKER.md).  
 Use [feature-initiation-prompts.md](../feature-initiation-prompts.md) for session discipline.
 
 ---
@@ -33,13 +33,13 @@ Architecture ref: docs/ARCHITECTURE.md §15 Vector Store
 Special constraints:
 - Embed text for vector store; local or configurable embedding model; no hardcoded API keys; used by store.py for add/similarity
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/embedder-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/embedder-py.md
+Implement the spec at ProgressTracking/specs/embedder-py.md
 
 Before writing any code:
 1. Read the full spec
@@ -70,13 +70,13 @@ Architecture ref: docs/ARCHITECTURE.md §15 Vector Store
 Special constraints:
 - ChromaDB; add, similarity_search, delete; used by s5_deduplicate; paths from config; no hardcoded paths
 
-Run /plan
+Output: Write the spec to ProgressTracking/specs/store-py.md using the format in .claude/agents/dev-planner.md. Do not ask the user; use the context above. Then set this item to IN_PROGRESS in ProgressTracking/TRACKER.md.
 ```
 
 **/build session**
 
 ```
-Implement the spec at .cursor/dev/specs/store-py.md
+Implement the spec at ProgressTracking/specs/store-py.md
 
 Before writing any code:
 1. Read the full spec
