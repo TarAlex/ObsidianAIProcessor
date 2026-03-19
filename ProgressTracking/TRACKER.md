@@ -31,7 +31,7 @@
 ## LLM Provider Layer  (agent/llm/)
 
 - [ IN_PROGRESS ]  base.py  (BaseProvider ABC: complete(prompt_name, ctx) → str)  → spec: ProgressTracking/specs/llm-base.md
-- [ TODO ]  prompt_loader.py  (reads prompts/*.md, caches)
+- [ IN_PROGRESS ]  prompt_loader.py  (reads prompts/*.md, caches)  → spec: ProgressTracking/specs/prompt-loader.md
 - [ TODO ]  ollama_provider.py  (default / privacy-first)
 - [ TODO ]  lmstudio_provider.py
 - [ TODO ]  openai_provider.py
