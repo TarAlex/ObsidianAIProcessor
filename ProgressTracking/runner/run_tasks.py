@@ -345,7 +345,7 @@ def build_directive_plan_prompt(task: Task) -> str:
         "slug: SLUG\n"
         "layer: adapters | llm | vault | stages | tasks | vector | cli | tests\n"
         "phase: 1\n"
-        "arch_section: §N  ← reference to ARCHITECTURE.md section\n\n"
+        "arch_section: §N  (reference to ARCHITECTURE.md section)\n\n"
         "## Problem statement\n"
         "## Module contract\n"
         "  Input:  [Pydantic model or type]\n"
@@ -497,7 +497,7 @@ def run_agent(
     profile: str | None = None,
     switch_cmd: str = DEFAULT_SWITCH_CMD,
 ) -> bool:
-    """Switch to profile then run: codemie-claude "PROMPT". Returns True on success."""
+    """Switch to profile, then pipe PROMPT via stdin to codemie-claude. Returns True on success."""
 
     if profile:
         if not switch_profile(profile, switch_cmd, dry_run):
@@ -521,12 +521,16 @@ def run_agent(
         fh.flush()
 
         try:
+            # Pipe prompt via stdin — codemie-claude forwards it to claude --print.
+            # Passing as a positional arg causes claude to never receive it.
             result = subprocess.run(
-                [_resolve(agent_cmd), prompt],
+                [_resolve(agent_cmd)],
+                input=prompt,
                 cwd=str(WORKSPACE),
                 stdout=fh,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
             )
         except FileNotFoundError:
             fh.write("\n--- ERROR: codemie-claude not found ---\n")
