@@ -67,7 +67,7 @@
 
 - [ DONE ]  s1_normalize.py  → spec: ProgressTracking/specs/s1-normalize.md
 - [ IN_PROGRESS ]  s2_classify.py  (uses prompts/classify.md via ProviderFactory)  → spec: ProgressTracking/specs/s2-classify.md
-- [ TODO ]  s3_dates.py
+- [ IN_PROGRESS ]  s3_dates.py  → spec: ProgressTracking/specs/s3-dates.md
 - [ DONE ]  s4a_summarize.py  (uses prompts/summarize.md)
 - [ TODO ]  s4b_verbatim.py  ★  (uses prompts/extract_verbatim.md; max 10 blocks)
 - [ TODO ]  s5_deduplicate.py  (ChromaDB similarity)
