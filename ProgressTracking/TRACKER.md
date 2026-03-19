@@ -23,7 +23,7 @@
 - [ IN_PROGRESS ]  web_adapter.py  (httpx + markdownify)  → spec: ProgressTracking/specs/web-adapter.md
 - [ IN_PROGRESS ]  pdf_adapter.py  (pymupdf)  → spec: ProgressTracking/specs/pdf-adapter.md
 - [ IN_PROGRESS ]  youtube_adapter.py  (youtube-transcript-api)  → spec: ProgressTracking/specs/youtube-adapter.md
-- [ TODO ]  audio_adapter.py  (openai-whisper)
+- [ IN_PROGRESS ]  audio_adapter.py  (openai-whisper)  → spec: ProgressTracking/specs/audio-adapter.md
 - [ TODO ]  teams_adapter.py
 
 ---
@@ -46,7 +46,7 @@
 - [ DONE ]  prompts/classify.md  → spec: ProgressTracking/specs/prompt-classify.md
 - [ DONE ]  prompts/summarize.md  → spec: ProgressTracking/specs/prompt-summarize.md
 - [ IN_PROGRESS ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)  → spec: ProgressTracking/specs/prompt-extract_verbatim.md
-- [ IN_PROGRESS ]  prompts/extract_entities.md  → spec: ProgressTracking/specs/prompt-extract_entities.md
+- [ DONE ]  prompts/extract_entities.md  → spec: ProgressTracking/specs/prompt-extract_entities.md
 - [ TODO ]  prompts/suggest_tags.md
 
 ---

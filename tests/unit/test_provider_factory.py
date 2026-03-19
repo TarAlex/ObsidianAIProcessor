@@ -255,7 +255,7 @@ class TestFallbackBehaviour:
             fp = _FallbackProvider(primary, [fallback])
             return await fp.chat([{"role": "user", "content": "hi"}])
 
-        result = anyio.from_thread.run_sync(lambda: anyio.run(run))
+        result = anyio.run(run)
         assert result == "fallback_reply"
 
     def test_all_providers_fail_raises_last_error(self):
