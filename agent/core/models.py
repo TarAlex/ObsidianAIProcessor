@@ -166,6 +166,13 @@ class DeduplicationResult(BaseModel):
     related_note_paths: list[str] = Field(default_factory=list)
 
 
+class WriteResult(BaseModel):
+    """Output of Stage 6a — paths of notes written to the vault."""
+
+    source_note: Path
+    knowledge_note: Path
+
+
 __all__ = [
     "SourceType",
     "ContentAge",
@@ -181,4 +188,5 @@ __all__ = [
     "PersonReference",
     "ProjectReference",
     "DeduplicationResult",
+    "WriteResult",
 ]
