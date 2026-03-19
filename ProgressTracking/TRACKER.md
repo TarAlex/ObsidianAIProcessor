@@ -12,13 +12,13 @@
              SummaryResult, VerbatimBlock, VerbatimType, StatenessRisk, ProcessingStatus)  → spec: ProgressTracking/specs/models-py.md
 - [ IN_PROGRESS ]  agent/core/pipeline.py  (stage orchestrator, error routing to to_review/)  → spec: ProgressTracking/specs/pipeline-py.md
 - [ IN_PROGRESS ]  agent/core/watcher.py  (watchdog InboxWatcher)  → spec: ProgressTracking/specs/watcher-py.md
-- [ TODO ]  agent/core/scheduler.py  (APScheduler: weekly outdated-review, daily index-rebuild)
+- [ IN_PROGRESS ]  agent/core/scheduler.py  (APScheduler: weekly outdated-review, daily index-rebuild)  → spec: ProgressTracking/specs/scheduler-py.md
 
 ---
 
 ## Source Adapters  (agent/adapters/)
 
-- [ TODO ]  base.py  (BaseAdapter ABC → NormalizedItem)
+- [ IN_PROGRESS ]  base.py  (BaseAdapter ABC → NormalizedItem)  → spec: ProgressTracking/specs/adapters-base.md
 - [ TODO ]  markdown_adapter.py
 - [ TODO ]  web_adapter.py  (httpx + markdownify)
 - [ TODO ]  pdf_adapter.py  (pymupdf)
@@ -30,7 +30,7 @@
 
 ## LLM Provider Layer  (agent/llm/)
 
-- [ TODO ]  base.py  (BaseProvider ABC: complete(prompt_name, ctx) → str)
+- [ IN_PROGRESS ]  base.py  (BaseProvider ABC: complete(prompt_name, ctx) → str)  → spec: ProgressTracking/specs/llm-base.md
 - [ TODO ]  prompt_loader.py  (reads prompts/*.md, caches)
 - [ TODO ]  ollama_provider.py  (default / privacy-first)
 - [ TODO ]  lmstudio_provider.py
@@ -43,7 +43,7 @@
 ## Tool Prompt Files  (prompts/)
 # These are TEXT FILES the tool loads at runtime — the prompt-author skill writes them.
 
-- [ TODO ]  prompts/classify.md
+- [ IN_PROGRESS ]  prompts/classify.md  → spec: ProgressTracking/specs/prompt-classify.md
 - [ TODO ]  prompts/summarize.md
 - [ TODO ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)
 - [ TODO ]  prompts/extract_entities.md
