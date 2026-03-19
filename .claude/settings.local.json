@@ -19,7 +19,8 @@
       "Bash(codemie-claude:*)",
       "Bash(do:*)",
       "Bash(grep:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(printf:*)"
     ]
   }
 }

@@ -39,6 +39,7 @@ import argparse
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -456,18 +457,29 @@ def git_stage_safe() -> bool:
 
 
 # ── Agent runner ──────────────────────────────────────────────────────────────
+def _resolve(cmd: str) -> str:
+    """Resolve a command name to its full path, finding .cmd shims on Windows."""
+    return shutil.which(cmd) or cmd
+
+
 def switch_profile(profile: str, switch_cmd: str, dry_run: bool) -> bool:
     """Run 'codemie profile switch <profile>'. Returns True on success."""
     if dry_run:
         logging.info("  [DRY RUN] profile switch -> %s", profile)
         return True
     logging.info("  Switching profile -> %s", profile)
-    r = subprocess.run(
-        [switch_cmd, "profile", "switch", profile],
-        cwd=str(WORKSPACE),
-        capture_output=True,
-        text=True,
-    )
+    try:
+        r = subprocess.run(
+            [_resolve(switch_cmd), "profile", "switch", profile],
+            cwd=str(WORKSPACE),
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        logging.error(
+            "  '%s' not found. Set CODEMIE_SWITCH_CMD or --switch-cmd.", switch_cmd
+        )
+        return False
     if r.returncode != 0:
         logging.error(
             "  Profile switch failed (exit %d): %s",
@@ -492,8 +504,6 @@ def run_agent(
             logging.error("  Skipping %s — profile switch failed.", label)
             return False
 
-    cmd = [agent_cmd, prompt]
-
     if dry_run:
         preview = prompt[:160].replace("\n", " ") + ("..." if len(prompt) > 160 else "")
         logging.info("[DRY RUN] %s  (profile: %s)", label, profile or "current")
@@ -512,7 +522,7 @@ def run_agent(
 
         try:
             result = subprocess.run(
-                cmd,
+                [_resolve(agent_cmd), prompt],
                 cwd=str(WORKSPACE),
                 stdout=fh,
                 stderr=subprocess.STDOUT,
