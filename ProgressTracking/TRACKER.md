@@ -47,7 +47,7 @@
 - [ DONE ]  prompts/summarize.md  → spec: ProgressTracking/specs/prompt-summarize.md
 - [ IN_PROGRESS ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)  → spec: ProgressTracking/specs/prompt-extract_verbatim.md
 - [ DONE ]  prompts/extract_entities.md  → spec: ProgressTracking/specs/prompt-extract_entities.md
-- [ TODO ]  prompts/suggest_tags.md
+- [ IN_PROGRESS ]  prompts/suggest_tags.md  → spec: ProgressTracking/specs/prompt-suggest_tags.md
 
 ---
 

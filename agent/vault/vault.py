@@ -5,6 +5,7 @@ operation. No module may read or write vault files directly.
 """
 from __future__ import annotations
 
+import os
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,7 +40,7 @@ class ObsidianVault:
         content = "---\n" + yaml.dump(frontmatter, allow_unicode=True) + "---\n\n" + body
         tmp = target.with_suffix(".tmp")
         tmp.write_text(content, encoding="utf-8")
-        tmp.rename(target)
+        os.replace(tmp, target)  # atomic on POSIX; close-enough on Windows (same filesystem)
         return target
 
     def read_note(self, relative_path: str) -> tuple[dict, str]:
