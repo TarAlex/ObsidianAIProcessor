@@ -87,40 +87,40 @@
 
 ## Vector Store  (agent/vector/)
 
-- [ IN_PROGRESS ]  embedder.py  → spec: ProgressTracking/specs/embedder-py.md
-- [ TODO ]  store.py  (ChromaDB: add, similarity_search, delete)
+- [ DONE ]  embedder.py  → spec: ProgressTracking/specs/embedder-py.md
+- [ IN_PROGRESS ]  store.py  (ChromaDB: add, similarity_search, delete)  → spec: ProgressTracking/specs/store-py.md
 
 ---
 
 ## CLI Entry Point
 
-- [ TODO ]  agent/main.py  (click: run, process-file, rebuild-indexes, outdated-review)
+- [ IN_PROGRESS ]  agent/main.py  (click: run, process-file, rebuild-indexes, outdated-review)  → spec: ProgressTracking/specs/main-py.md
 
 ---
 
 ## Setup Scripts
 
-- [ TODO ]  scripts/setup_vault.py  (creates all _index.md from templates on first run)
-- [ TODO ]  scripts/reindex.py
+- [ IN_PROGRESS ]  scripts/setup_vault.py  (creates all _index.md from templates on first run)  → spec: ProgressTracking/specs/setup-vault.md
+- [ IN_PROGRESS ]  scripts/reindex.py  (CLI wrapper: anyio.run(rebuild_all_counts, vault, dry_run))  → spec: ProgressTracking/specs/reindex.md
 
 ---
 
 ## Tests
 
-- [ TODO ]  tests/unit/test_models.py
-- [ TODO ]  tests/unit/test_vault.py
-- [ TODO ]  tests/unit/test_verbatim.py  ★  (round-trip lossless contract)
-- [ TODO ]  tests/unit/test_index_update.py  ★
-- [ TODO ]  tests/unit/test_vector_store.py
+- [ DONE ]  tests/unit/test_models.py  → spec: ProgressTracking/specs/test-models.md
+- [ DONE ]  tests/unit/test_vault.py  → spec: ProgressTracking/specs/test-vault.md
+- [ DONE ]  tests/unit/test_verbatim.py  ★  (round-trip lossless contract)  → spec: ProgressTracking/specs/test-verbatim.md
+- [ DONE ]  tests/unit/test_index_update.py  ★  → spec: ProgressTracking/specs/test-index-update.md
+- [ DONE ]  tests/unit/test_vector_store.py  → spec: ProgressTracking/specs/test-vector-store.md
 - [ DONE ]  tests/unit/test_s3_dates.py
 - [ DONE ]  tests/unit/test_reference_linker.py
-- [ TODO ]  tests/integration/test_pipeline_youtube.py
-- [ TODO ]  tests/integration/test_pipeline_pdf.py
-- [ TODO ]  tests/integration/test_pipeline_verbatim.py  ★
-- [ TODO ]  tests/integration/test_pipeline_index.py  ★
-- [ TODO ]  tests/integration/test_llm_ollama.py
-- [ TODO ]  tests/integration/test_sync_lock.py
-- [ TODO ]  tests/fixtures/  (sample_youtube_transcript.md, sample_article.html,
+- [ DONE ]  tests/integration/test_pipeline_youtube.py
+- [ DONE ]  tests/integration/test_pipeline_pdf.py
+- [ DONE ]  tests/integration/test_pipeline_verbatim.py  ★
+- [ DONE ]  tests/integration/test_pipeline_index.py  ★
+- [ DONE ]  tests/integration/test_llm_ollama.py
+- [ DONE ]  tests/integration/test_sync_lock.py
+- [ DONE ]  tests/fixtures/  (sample_youtube_transcript.md, sample_article.html,
              sample_pdf_extracted.txt, sample_code_heavy.md ★, sample_prompt_doc.md ★,
              vault_structure/)
 

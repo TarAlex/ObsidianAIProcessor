@@ -22,9 +22,10 @@ logger = logging.getLogger(__name__)
 class KnowledgePipeline:
     """Drives a raw inbox file through S1→S7 and returns a ProcessingRecord."""
 
-    def __init__(self, config: AgentConfig, vault: Any) -> None:
+    def __init__(self, config: AgentConfig, vault: Any, dry_run: bool = False) -> None:
         self.config = config
         self.vault = vault
+        self.dry_run = dry_run
         self._llm: Any = None
 
     def _get_llm(self) -> Any:
@@ -131,7 +132,7 @@ class KnowledgePipeline:
         except Exception as e:
             logger.exception("Pipeline failed for %s: %s", raw_path, e)
             record.errors.append(str(e))
-            self.vault.move_to_review(raw_path, error=str(e))
+            self.vault.move_to_review(raw_path, reason=str(e))
 
         finally:
             record.processing_time_s = (datetime.now() - start).total_seconds()

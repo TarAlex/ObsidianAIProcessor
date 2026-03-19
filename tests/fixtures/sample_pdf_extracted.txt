@@ -1,0 +1,7 @@
+Sample PDF extracted text for integration tests.
+
+This is the plain-text equivalent of a minimal PDF fixture. Pipeline and adapter
+tests can compare raw_text output against this content when using a PDF
+generated to match it.
+
+Second paragraph for multi-block extraction checks.

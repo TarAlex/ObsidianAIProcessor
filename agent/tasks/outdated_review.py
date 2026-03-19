@@ -9,7 +9,6 @@ Never modifies or deletes vault notes — human review only.
 from __future__ import annotations
 
 import logging
-import os
 from datetime import date, datetime, timedelta
 
 from agent.core.config import AgentConfig
@@ -20,12 +19,13 @@ from agent.vault.verbatim import parse_verbatim_blocks
 logger = logging.getLogger(__name__)
 
 
-async def run(vault: ObsidianVault, config: AgentConfig) -> None:
+async def run(vault: ObsidianVault, config: AgentConfig, dry_run: bool = False) -> None:
     """Weekly staleness scan entry point.
 
     Called by APScheduler weekly cron job or on-demand via CLI command
     ``outdated-review``. Writes _AI_META/outdated-review.md.
     Idempotent — safe to re-run; overwrites the previous report.
+    When dry_run is True, prints the report to stdout instead of writing.
     """
     logger.info("staleness.scan.started")
 
@@ -84,7 +84,10 @@ async def run(vault: ObsidianVault, config: AgentConfig) -> None:
         len(stale_notes),
         len(stale_verbatim),
     )
-    _write_review_report(vault, stale_notes, stale_verbatim)
+    if dry_run:
+        _print_review_report(stale_notes, stale_verbatim)
+    else:
+        _write_review_report(vault, stale_notes, stale_verbatim)
     logger.info("staleness.scan.completed")
 
 
@@ -125,8 +128,16 @@ def _write_review_report(
     else:
         lines += ["_None._", ""]
 
-    report_path = vault.meta / "outdated-review.md"
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = report_path.with_suffix(".tmp")
-    tmp.write_text("\n".join(lines), encoding="utf-8")
-    os.replace(tmp, report_path)
+    rel = "_AI_META/outdated-review.md"
+    vault.write_note(rel, {}, "\n".join(lines))
+
+
+def _print_review_report(
+    stale_notes: list[dict],
+    stale_verbatim: list[dict],
+) -> None:
+    """Print a dry-run report to stdout instead of writing to disk."""
+    today_str = date.today().isoformat()
+    print(f"[dry-run] Outdated review — {today_str}")
+    print(f"  Stale notes:    {len(stale_notes)}")
+    print(f"  Stale verbatim: {len(stale_verbatim)}")

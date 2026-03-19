@@ -16,7 +16,7 @@ from agent.vault.vault import ObsidianVault
 logger = logging.getLogger(__name__)
 
 
-async def rebuild_all_counts(vault: ObsidianVault) -> None:
+async def rebuild_all_counts(vault: ObsidianVault, dry_run: bool = False) -> None:
     """Walk all notes in 02_KNOWLEDGE/, count per domain and subdomain,
     then rewrite note_count + last_updated in each _index.md.
 
@@ -87,8 +87,9 @@ async def rebuild_all_counts(vault: ObsidianVault) -> None:
         if fm.get("note_count") != new_count or fm.get("last_updated") != new_mtime:
             fm["note_count"] = new_count
             fm["last_updated"] = new_mtime
-            vault.write_note(rel, fm, body)
-            logger.debug("index.updated rel=%s count=%d", rel, new_count)
+            if not dry_run:
+                vault.write_note(rel, fm, body)
+            logger.debug("index.updated rel=%s count=%d dry_run=%s", rel, new_count, dry_run)
             indexes_written += 1
 
     logger.info("index.rebuild.complete indexes_written=%d", indexes_written)

@@ -70,3 +70,9 @@ $RECYCLE.BIN/
 .obsidian/cache
 .trash/
 .claude/settings.local.json
+
+# Vector store (local ChromaDB data)
+chroma_db/
+
+# Whisper model cache
+whisper_cache/
