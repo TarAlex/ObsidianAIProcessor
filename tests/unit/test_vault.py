@@ -121,12 +121,12 @@ def test_read_note_no_frontmatter(tmp_path):
 
 
 def test_read_note_empty_frontmatter(tmp_path):
-    """yaml.safe_load of an empty/whitespace-only block returns None — documented behaviour."""
+    """parse_note returns {} for an empty frontmatter block."""
     path = tmp_path / "empty.md"
     path.write_text("---\n---\n\nbody", encoding="utf-8")
     v = _vault(tmp_path)
     fm, body = v.read_note("empty.md")
-    assert fm is None
+    assert fm == {}
 
 
 # ── archive_file ──────────────────────────────────────────────────────────────

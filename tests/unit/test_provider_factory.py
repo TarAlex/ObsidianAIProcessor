@@ -309,10 +309,28 @@ class TestAlias:
 
 class TestNoVaultImport:
     def test_no_vault_import(self):
-        """Importing provider_factory must not transitively import agent.vault."""
-        # Ensure the module is imported
-        import agent.llm.provider_factory  # noqa: F401
-        for mod_name in sys.modules:
-            assert not mod_name.startswith("agent.vault"), (
-                f"agent.vault was transitively imported by provider_factory: {mod_name}"
-            )
+        """Importing provider_factory must not transitively import agent.vault.
+
+        Uses a subprocess so that sys.modules is clean — other test modules
+        that happen to import agent.vault cannot pollute the check.
+        """
+        import subprocess
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                (
+                    "import agent.llm.provider_factory; import sys; "
+                    "vault_mods = [m for m in sys.modules if m.startswith('agent.vault')]; "
+                    "print(vault_mods)"
+                ),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, f"subprocess failed:\n{result.stderr}"
+        vault_mods = eval(result.stdout.strip() or "[]")  # noqa: S307
+        assert not vault_mods, (
+            f"agent.vault was transitively imported by provider_factory: {vault_mods}"
+        )

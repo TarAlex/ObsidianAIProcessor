@@ -24,7 +24,7 @@
 - [ IN_PROGRESS ]  pdf_adapter.py  (pymupdf)  → spec: ProgressTracking/specs/pdf-adapter.md
 - [ IN_PROGRESS ]  youtube_adapter.py  (youtube-transcript-api)  → spec: ProgressTracking/specs/youtube-adapter.md
 - [ IN_PROGRESS ]  audio_adapter.py  (openai-whisper)  → spec: ProgressTracking/specs/audio-adapter.md
-- [ TODO ]  teams_adapter.py
+- [ IN_PROGRESS ]  teams_adapter.py  (VTT WebVTT transcript parser; Phase 1 local only)  → spec: ProgressTracking/specs/teams-adapter.md
 
 ---
 
@@ -56,8 +56,8 @@
 - [ IN_PROGRESS ]  vault.py  (ObsidianVault: read_note, write_note, ensure_domain_index,
              update_domain_index, path helpers)  → spec: ProgressTracking/specs/vault-py.md
 - [ IN_PROGRESS ]  note.py  (frontmatter parse/render — python-frontmatter)  → spec: ProgressTracking/specs/note-py.md
-- [ TODO ]  verbatim.py  ★  (render_verbatim_block, parse_verbatim_blocks — round-trip lossless)
-- [ TODO ]  templates.py  (Jinja2 template loader from _AI_META/templates/)
+- [ IN_PROGRESS ]  verbatim.py  ★  (render_verbatim_block, parse_verbatim_blocks — round-trip lossless)  → spec: ProgressTracking/specs/vault-verbatim.md
+- [ IN_PROGRESS ]  templates.py  (Jinja2 template loader from _AI_META/templates/)  → spec: ProgressTracking/specs/templates-py.md
 - [ TODO ]  references.py  (REFERENCES/ CRUD: people, work projects, personal projects)
 - [ TODO ]  archive.py
 

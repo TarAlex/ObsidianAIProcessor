@@ -1,0 +1,22 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.500
+<v Alice>Good morning everyone. Let's get started with the standup.
+
+00:00:08.500 --> 00:00:20.000
+<v Bob>Sure. Yesterday I finished the authentication module and today I'm working on the API layer.
+
+00:00:20.000 --> 00:00:32.000
+<v Carol>I reviewed Bob's PR. Left some comments. Will also finish the database migration script.
+
+00:00:32.000 --> 00:00:45.000
+<v Alice>Great. Any blockers?
+
+00:00:45.000 --> 00:01:00.000
+<v Bob>No blockers from my side.
+
+00:01:00.000 --> 00:01:15.000
+<v Carol>I might need some help with the migration rollback logic. Can discuss after the standup.
+
+00:01:15.000 --> 00:01:30.000
+<v Alice>Sounds good. Let's connect after this. That's all for today. Have a great day everyone!

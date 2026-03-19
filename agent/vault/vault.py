@@ -10,9 +10,8 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
-import yaml
-
 from agent.core.models import DomainIndexEntry, ProcessingRecord
+from agent.vault.note import parse_note, render_note
 
 
 class ObsidianVault:
@@ -37,7 +36,7 @@ class ObsidianVault:
         """Atomic write: serialize to a .tmp file, then rename to target."""
         target = self.root / relative_path
         target.parent.mkdir(parents=True, exist_ok=True)
-        content = "---\n" + yaml.dump(frontmatter, allow_unicode=True) + "---\n\n" + body
+        content = render_note(frontmatter, body)
         tmp = target.with_suffix(".tmp")
         tmp.write_text(content, encoding="utf-8")
         os.replace(tmp, target)  # atomic on POSIX; close-enough on Windows (same filesystem)
@@ -46,10 +45,7 @@ class ObsidianVault:
     def read_note(self, relative_path: str) -> tuple[dict, str]:
         """Return (frontmatter_dict, body). frontmatter_dict may be None for empty blocks."""
         content = (self.root / relative_path).read_text(encoding="utf-8")
-        if content.startswith("---"):
-            _, fm_str, body = content.split("---", 2)
-            return yaml.safe_load(fm_str), body.lstrip()
-        return {}, content
+        return parse_note(content)
 
     def archive_file(self, source_path: Path, date_created: datetime) -> Path:
         """Move source_path into 05_ARCHIVE/{year}/{month:02d}/YYYYMMDD-{name}."""
@@ -134,7 +130,7 @@ class ObsidianVault:
             "domain": domain,
             "subdomain": subdomain,
             "domain_path": f"{domain}/{subdomain}" if subdomain else domain,
-        })
+        }, self.meta / "templates")
         self.write_note(relative_path, frontmatter, body)
 
     def increment_index_count(self, relative_path: str) -> None:
