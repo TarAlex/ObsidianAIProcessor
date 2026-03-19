@@ -7,36 +7,36 @@
 ## Foundations
 
 - [ DONE ]  pyproject.toml + project scaffold  → spec: ProgressTracking/specs/pyproject-scaffold.md
-- [ IN_PROGRESS ]  agent/core/config.py  (YAML + .env loading, Config Pydantic model)  → spec: ProgressTracking/specs/config-py.md
-- [ IN_PROGRESS ]  agent/core/models.py  (all v1.1 models: NormalizedItem, ClassificationResult,
+- [ DONE ]  agent/core/config.py  (YAML + .env loading, Config Pydantic model)  → spec: ProgressTracking/specs/config-py.md
+- [ DONE ]  agent/core/models.py  (all v1.1 models: NormalizedItem, ClassificationResult,
              SummaryResult, VerbatimBlock, VerbatimType, StatenessRisk, ProcessingStatus)  → spec: ProgressTracking/specs/models-py.md
-- [ IN_PROGRESS ]  agent/core/pipeline.py  (stage orchestrator, error routing to to_review/)  → spec: ProgressTracking/specs/pipeline-py.md
-- [ IN_PROGRESS ]  agent/core/watcher.py  (watchdog InboxWatcher)  → spec: ProgressTracking/specs/watcher-py.md
-- [ IN_PROGRESS ]  agent/core/scheduler.py  (APScheduler: weekly outdated-review, daily index-rebuild)  → spec: ProgressTracking/specs/scheduler-py.md
+- [ DONE ]  agent/core/pipeline.py  (stage orchestrator, error routing to to_review/)  → spec: ProgressTracking/specs/pipeline-py.md
+- [ DONE ]  agent/core/watcher.py  (watchdog InboxWatcher)  → spec: ProgressTracking/specs/watcher-py.md
+- [ DONE ]  agent/core/scheduler.py  (APScheduler: weekly outdated-review, daily index-rebuild)  → spec: ProgressTracking/specs/scheduler-py.md
 
 ---
 
 ## Source Adapters  (agent/adapters/)
 
-- [ IN_PROGRESS ]  base.py  (BaseAdapter ABC → NormalizedItem)  → spec: ProgressTracking/specs/adapters-base.md
+- [ DONE ]  base.py  (BaseAdapter ABC → NormalizedItem)  → spec: ProgressTracking/specs/adapters-base.md
 - [ DONE ]  markdown_adapter.py  (MarkdownAdapter: .md/.txt → NormalizedItem; no LLM; anyio; frontmatter)  → spec: ProgressTracking/specs/markdown-adapter.md
-- [ IN_PROGRESS ]  web_adapter.py  (httpx + markdownify)  → spec: ProgressTracking/specs/web-adapter.md
-- [ IN_PROGRESS ]  pdf_adapter.py  (pymupdf)  → spec: ProgressTracking/specs/pdf-adapter.md
-- [ IN_PROGRESS ]  youtube_adapter.py  (youtube-transcript-api)  → spec: ProgressTracking/specs/youtube-adapter.md
-- [ IN_PROGRESS ]  audio_adapter.py  (openai-whisper)  → spec: ProgressTracking/specs/audio-adapter.md
-- [ IN_PROGRESS ]  teams_adapter.py  (VTT WebVTT transcript parser; Phase 1 local only)  → spec: ProgressTracking/specs/teams-adapter.md
+- [ DONE ]  web_adapter.py  (httpx + markdownify)  → spec: ProgressTracking/specs/web-adapter.md
+- [ DONE ]  pdf_adapter.py  (pymupdf)  → spec: ProgressTracking/specs/pdf-adapter.md
+- [ DONE ]  youtube_adapter.py  (youtube-transcript-api)  → spec: ProgressTracking/specs/youtube-adapter.md
+- [ DONE ]  audio_adapter.py  (openai-whisper)  → spec: ProgressTracking/specs/audio-adapter.md
+- [ DONE ]  teams_adapter.py  (VTT WebVTT transcript parser; Phase 1 local only)  → spec: ProgressTracking/specs/teams-adapter.md
 
 ---
 
 ## LLM Provider Layer  (agent/llm/)
 
-- [ IN_PROGRESS ]  base.py  (BaseProvider ABC: complete(prompt_name, ctx) → str)  → spec: ProgressTracking/specs/llm-base.md
-- [ IN_PROGRESS ]  prompt_loader.py  (reads prompts/*.md, caches)  → spec: ProgressTracking/specs/prompt-loader.md
+- [ DONE ]  base.py  (BaseProvider ABC: complete(prompt_name, ctx) → str)  → spec: ProgressTracking/specs/llm-base.md
+- [ DONE ]  prompt_loader.py  (reads prompts/*.md, caches)  → spec: ProgressTracking/specs/prompt-loader.md
 - [ IN_PROGRESS ]  ollama_provider.py  (default / privacy-first)  → spec: ProgressTracking/specs/ollama-provider.md
 - [ DONE ]  lmstudio_provider.py  → spec: ProgressTracking/specs/lmstudio-provider.md
-- [ IN_PROGRESS ]  openai_provider.py  → spec: ProgressTracking/specs/openai-provider.md
+- [ DONE ]  openai_provider.py  → spec: ProgressTracking/specs/openai-provider.md
 - [ DONE ]  anthropic_provider.py  → spec: ProgressTracking/specs/anthropic-provider.md
-- [ IN_PROGRESS ]  provider_factory.py  (registry + env-driven selection)  → spec: ProgressTracking/specs/provider-factory.md
+- [ DONE ]  provider_factory.py  (registry + env-driven selection)  → spec: ProgressTracking/specs/provider-factory.md
 
 ---
 
@@ -45,7 +45,7 @@
 
 - [ DONE ]  prompts/classify.md  → spec: ProgressTracking/specs/prompt-classify.md
 - [ DONE ]  prompts/summarize.md  → spec: ProgressTracking/specs/prompt-summarize.md
-- [ IN_PROGRESS ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)  → spec: ProgressTracking/specs/prompt-extract_verbatim.md
+- [ DONE ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)  → spec: ProgressTracking/specs/prompt-extract_verbatim.md
 - [ DONE ]  prompts/extract_entities.md  → spec: ProgressTracking/specs/prompt-extract_entities.md
 - [ DONE ]  prompts/suggest_tags.md  → spec: ProgressTracking/specs/prompt-suggest_tags.md
 
@@ -53,12 +53,12 @@
 
 ## Vault Layer  (agent/vault/)
 
-- [ IN_PROGRESS ]  vault.py  (ObsidianVault: read_note, write_note, ensure_domain_index,
+- [ DONE ]  vault.py  (ObsidianVault: read_note, write_note, ensure_domain_index,
              update_domain_index, path helpers)  → spec: ProgressTracking/specs/vault-py.md
-- [ IN_PROGRESS ]  note.py  (frontmatter parse/render — python-frontmatter)  → spec: ProgressTracking/specs/note-py.md
-- [ IN_PROGRESS ]  verbatim.py  ★  (render_verbatim_block, parse_verbatim_blocks — round-trip lossless)  → spec: ProgressTracking/specs/vault-verbatim.md
-- [ IN_PROGRESS ]  templates.py  (Jinja2 template loader from _AI_META/templates/)  → spec: ProgressTracking/specs/templates-py.md
-- [ TODO ]  references.py  (REFERENCES/ CRUD: people, work projects, personal projects)
+- [ DONE ]  note.py  (frontmatter parse/render — python-frontmatter)  → spec: ProgressTracking/specs/note-py.md
+- [ DONE ]  verbatim.py  ★  (render_verbatim_block, parse_verbatim_blocks — round-trip lossless)  → spec: ProgressTracking/specs/vault-verbatim.md
+- [ DONE ]  templates.py  (Jinja2 template loader from _AI_META/templates/)  → spec: ProgressTracking/specs/templates-py.md
+- [ DONE ]  references.py  (REFERENCES/ CRUD: people, work projects, personal projects)  → spec: ProgressTracking/specs/references-py.md
 - [ TODO ]  archive.py
 
 ---
