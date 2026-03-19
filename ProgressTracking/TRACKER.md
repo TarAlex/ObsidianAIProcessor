@@ -34,7 +34,7 @@
 - [ IN_PROGRESS ]  prompt_loader.py  (reads prompts/*.md, caches)  → spec: ProgressTracking/specs/prompt-loader.md
 - [ IN_PROGRESS ]  ollama_provider.py  (default / privacy-first)  → spec: ProgressTracking/specs/ollama-provider.md
 - [ DONE ]  lmstudio_provider.py  → spec: ProgressTracking/specs/lmstudio-provider.md
-- [ TODO ]  openai_provider.py
+- [ IN_PROGRESS ]  openai_provider.py  → spec: ProgressTracking/specs/openai-provider.md
 - [ TODO ]  anthropic_provider.py
 - [ TODO ]  provider_factory.py  (registry + env-driven selection)
 
@@ -44,8 +44,8 @@
 # These are TEXT FILES the tool loads at runtime — the prompt-author skill writes them.
 
 - [ DONE ]  prompts/classify.md  → spec: ProgressTracking/specs/prompt-classify.md
-- [ IN_PROGRESS ]  prompts/summarize.md  → spec: ProgressTracking/specs/prompt-summarize.md
-- [ TODO ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)
+- [ DONE ]  prompts/summarize.md  → spec: ProgressTracking/specs/prompt-summarize.md
+- [ IN_PROGRESS ]  prompts/extract_verbatim.md  ★  (includes Appendix A decision tree)  → spec: ProgressTracking/specs/prompt-extract_verbatim.md
 - [ TODO ]  prompts/extract_entities.md
 - [ TODO ]  prompts/suggest_tags.md
 
@@ -68,7 +68,7 @@
 - [ TODO ]  s1_normalize.py
 - [ DONE ]  s2_classify.py  (uses prompts/classify.md via ProviderFactory)
 - [ TODO ]  s3_dates.py
-- [ TODO ]  s4a_summarize.py  (uses prompts/summarize.md)
+- [ DONE ]  s4a_summarize.py  (uses prompts/summarize.md)
 - [ TODO ]  s4b_verbatim.py  ★  (uses prompts/extract_verbatim.md; max 10 blocks)
 - [ TODO ]  s5_deduplicate.py  (ChromaDB similarity)
 - [ TODO ]  s6a_write.py  (Jinja2 templates → vault notes)
