@@ -55,7 +55,7 @@
 
 - [ IN_PROGRESS ]  vault.py  (ObsidianVault: read_note, write_note, ensure_domain_index,
              update_domain_index, path helpers)  → spec: ProgressTracking/specs/vault-py.md
-- [ TODO ]  note.py  (frontmatter parse/render — python-frontmatter)
+- [ IN_PROGRESS ]  note.py  (frontmatter parse/render — python-frontmatter)  → spec: ProgressTracking/specs/note-py.md
 - [ TODO ]  verbatim.py  ★  (render_verbatim_block, parse_verbatim_blocks — round-trip lossless)
 - [ TODO ]  templates.py  (Jinja2 template loader from _AI_META/templates/)
 - [ TODO ]  references.py  (REFERENCES/ CRUD: people, work projects, personal projects)
