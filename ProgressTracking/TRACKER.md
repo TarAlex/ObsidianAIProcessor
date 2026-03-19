@@ -22,7 +22,7 @@
 - [ DONE ]  markdown_adapter.py  (MarkdownAdapter: .md/.txt → NormalizedItem; no LLM; anyio; frontmatter)  → spec: ProgressTracking/specs/markdown-adapter.md
 - [ IN_PROGRESS ]  web_adapter.py  (httpx + markdownify)  → spec: ProgressTracking/specs/web-adapter.md
 - [ IN_PROGRESS ]  pdf_adapter.py  (pymupdf)  → spec: ProgressTracking/specs/pdf-adapter.md
-- [ TODO ]  youtube_adapter.py  (youtube-transcript-api)
+- [ IN_PROGRESS ]  youtube_adapter.py  (youtube-transcript-api)  → spec: ProgressTracking/specs/youtube-adapter.md
 - [ TODO ]  audio_adapter.py  (openai-whisper)
 - [ TODO ]  teams_adapter.py
 
@@ -35,7 +35,7 @@
 - [ IN_PROGRESS ]  ollama_provider.py  (default / privacy-first)  → spec: ProgressTracking/specs/ollama-provider.md
 - [ DONE ]  lmstudio_provider.py  → spec: ProgressTracking/specs/lmstudio-provider.md
 - [ IN_PROGRESS ]  openai_provider.py  → spec: ProgressTracking/specs/openai-provider.md
-- [ TODO ]  anthropic_provider.py
+- [ IN_PROGRESS ]  anthropic_provider.py  → spec: ProgressTracking/specs/anthropic-provider.md
 - [ TODO ]  provider_factory.py  (registry + env-driven selection)
 
 ---
