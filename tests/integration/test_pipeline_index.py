@@ -1,6 +1,6 @@
-"""Integration tests for agent/stages/s6b_index_update.py.
-
-End-to-end tests against a real temp vault (render_template patched).
+"""Integration tests for:
+  - agent/stages/s6b_index_update.py  (pipeline stage, end-to-end)
+  - agent/tasks/index_updater.py       (daily rebuild task, end-to-end)
 """
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from agent.core.models import (
     StatenessRisk,
 )
 from agent.stages import s6b_index_update
+from agent.tasks.index_updater import rebuild_all_counts
 from agent.vault.vault import ObsidianVault
 
 
@@ -49,8 +50,37 @@ def _run_sync(classification: ClassificationResult, vault: ObsidianVault) -> Non
     anyio.run(_coro)
 
 
+def _run_rebuild(vault: ObsidianVault) -> None:
+    anyio.run(rebuild_all_counts, vault)
+
+
+def _write_note(vault: ObsidianVault, rel: str, fm: dict, body: str = "") -> None:
+    vault.write_note(rel, fm, body)
+
+
+def _write_index(
+    vault: ObsidianVault,
+    index_type: str,
+    domain: str,
+    subdomain: str | None = None,
+    note_count: int = 0,
+    last_updated: str = "2020-01-01",
+) -> str:
+    rel = vault.get_domain_index_path(domain, subdomain)
+    fm: dict = {
+        "index_type": index_type,
+        "domain": domain,
+        "note_count": note_count,
+        "last_updated": last_updated,
+    }
+    if subdomain:
+        fm["subdomain"] = subdomain
+    vault.write_note(rel, fm, "")
+    return rel
+
+
 # ---------------------------------------------------------------------------
-# Test 1 — end-to-end: both _index.md files created with correct metadata
+# s6b stage — end-to-end
 # ---------------------------------------------------------------------------
 
 
@@ -81,14 +111,70 @@ def test_full_pipeline_index_update(mock_rt, tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 2 — rebuild_all_counts corrects inflated counts (DEFERRED)
+# index_updater task — integration case 1: three notes → count 3
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(reason="Requires agent/tasks/index_updater.py — deferred to index_updater spec")
-def test_rebuild_all_counts_corrects_inflation(tmp_path: Path) -> None:
-    """TODO: manually set note_count=99 in a subdomain index, then call
-    index_updater.rebuild_all_counts() and verify the count is corrected.
-    This test requires agent/tasks/index_updater.py to be implemented first.
-    """
-    pass
+def test_three_notes_count_three(tmp_path: Path) -> None:
+    """Write 3 notes to professional_dev/ai_tools/; run rebuild_all_counts;
+    verify note_count: 3 in both subdomain and domain _index.md."""
+    vault = ObsidianVault(tmp_path)
+
+    for i in range(3):
+        _write_note(
+            vault,
+            f"02_KNOWLEDGE/professional_dev/ai_tools/note{i}.md",
+            {"domain_path": "professional_dev/ai_tools", "date_modified": "2025-03-01"},
+        )
+
+    sub_rel = _write_index(vault, "subdomain", "professional_dev", "ai_tools")
+    dom_rel = _write_index(vault, "domain", "professional_dev")
+
+    _run_rebuild(vault)
+
+    sub_fm, _ = vault.read_note(sub_rel)
+    dom_fm, _ = vault.read_note(dom_rel)
+
+    assert sub_fm["note_count"] == 3, "subdomain index must reflect 3 notes"
+    assert dom_fm["note_count"] == 3, "domain index must reflect 3 notes"
+
+
+# ---------------------------------------------------------------------------
+# index_updater task — integration case 2: multi-domain isolation
+# ---------------------------------------------------------------------------
+
+
+def test_multi_domain_isolation(tmp_path: Path) -> None:
+    """2 notes in professional_dev/ai_tools, 1 in mindset/resilience;
+    each domain/subdomain gets an independent correct count."""
+    vault = ObsidianVault(tmp_path)
+
+    for i in range(2):
+        _write_note(
+            vault,
+            f"02_KNOWLEDGE/professional_dev/ai_tools/note{i}.md",
+            {"domain_path": "professional_dev/ai_tools"},
+        )
+
+    _write_note(
+        vault,
+        "02_KNOWLEDGE/mindset/resilience/note0.md",
+        {"domain_path": "mindset/resilience"},
+    )
+
+    pd_sub_rel = _write_index(vault, "subdomain", "professional_dev", "ai_tools")
+    pd_dom_rel = _write_index(vault, "domain", "professional_dev")
+    ms_sub_rel = _write_index(vault, "subdomain", "mindset", "resilience")
+    ms_dom_rel = _write_index(vault, "domain", "mindset")
+
+    _run_rebuild(vault)
+
+    pd_sub_fm, _ = vault.read_note(pd_sub_rel)
+    pd_dom_fm, _ = vault.read_note(pd_dom_rel)
+    ms_sub_fm, _ = vault.read_note(ms_sub_rel)
+    ms_dom_fm, _ = vault.read_note(ms_dom_rel)
+
+    assert pd_sub_fm["note_count"] == 2, "professional_dev/ai_tools subdomain: 2 notes"
+    assert pd_dom_fm["note_count"] == 2, "professional_dev domain: 2 notes"
+    assert ms_sub_fm["note_count"] == 1, "mindset/resilience subdomain: 1 note"
+    assert ms_dom_fm["note_count"] == 1, "mindset domain: 1 note"
