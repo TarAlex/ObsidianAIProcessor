@@ -11,7 +11,7 @@
 - [ IN_PROGRESS ]  agent/core/models.py  (all v1.1 models: NormalizedItem, ClassificationResult,
              SummaryResult, VerbatimBlock, VerbatimType, StatenessRisk, ProcessingStatus)  → spec: ProgressTracking/specs/models-py.md
 - [ IN_PROGRESS ]  agent/core/pipeline.py  (stage orchestrator, error routing to to_review/)  → spec: ProgressTracking/specs/pipeline-py.md
-- [ TODO ]  agent/core/watcher.py  (watchdog InboxWatcher)
+- [ IN_PROGRESS ]  agent/core/watcher.py  (watchdog InboxWatcher)  → spec: ProgressTracking/specs/watcher-py.md
 - [ TODO ]  agent/core/scheduler.py  (APScheduler: weekly outdated-review, daily index-rebuild)
 
 ---
