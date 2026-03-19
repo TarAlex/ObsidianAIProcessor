@@ -6,7 +6,7 @@
 
 ## Foundations
 
-- [ TODO ]  pyproject.toml + project scaffold
+- [ IN_PROGRESS ]  pyproject.toml + project scaffold  → spec: ProgressTracking/specs/pyproject-scaffold.md
 - [ TODO ]  agent/core/config.py  (YAML + .env loading, Config Pydantic model)
 - [ TODO ]  agent/core/models.py  (all v1.1 models: NormalizedItem, ClassificationResult,
              SummaryResult, VerbatimBlock, VerbatimType, StatenessRisk, ProcessingStatus)
