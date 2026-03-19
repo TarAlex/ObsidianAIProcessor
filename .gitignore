@@ -69,3 +69,4 @@ $RECYCLE.BIN/
 .obsidian/workspace.json
 .obsidian/cache
 .trash/
+.claude/settings.local.json

@@ -5,13 +5,20 @@ Sequential codemie-claude task runner for obsidian-agent.
 Reads task files 01–11 from ProgressTracking/tasks/, extracts plan and build
 prompts, and runs Feature-Spec → Design → Implement → Review → Commit per task.
 
-Phase model defaults: spec=opus, plan=opus, build=sonnet, review=opus.
+Profile routing: spec/plan/review use CODEMIE_OPUS_PROFILE (opus),
+                 build uses CODEMIE_SONNET_PROFILE (sonnet).
+Profile is switched via "codemie profile switch <name>" before each call.
+Prompt is run via: codemie-claude "prompt text"
 Skips tasks already marked DONE in ProgressTracking/TRACKER.md.
-Generates a section-level feature spec once before each section's module plans.
+
+.env keys:
+  CODEMIE_OPUS_PROFILE    profile name for spec/plan/review  (e.g. Personal_Opus4.6)
+  CODEMIE_SONNET_PROFILE  profile name for build             (e.g. PersonalSonnet_46)
+  CODEMIE_AGENT_CMD       codemie-claude executable path     (default: codemie-claude)
+  CODEMIE_SWITCH_CMD      codemie executable path            (default: codemie)
 
 Prerequisites:
   - codemie-claude installed: npm install -g codemie-code
-  - Active profile configured: codemie-claude profile (or use --profile)
 
 Usage:
   python ProgressTracking/runner/run_tasks.py                        # full workflow
@@ -24,10 +31,8 @@ Usage:
   python ProgressTracking/runner/run_tasks.py --skip-spec            # skip feature spec step
   python ProgressTracking/runner/run_tasks.py --no-commit            # skip git commit
   python ProgressTracking/runner/run_tasks.py --stop-on-error        # abort on first failure
-  python ProgressTracking/runner/run_tasks.py --plan-model opus      # override plan model
-  python ProgressTracking/runner/run_tasks.py --build-model sonnet   # override build model
-  python ProgressTracking/runner/run_tasks.py --review-model opus    # override review model
-  python ProgressTracking/runner/run_tasks.py --profile myprofile    # use specific profile
+  python ProgressTracking/runner/run_tasks.py --opus-profile NAME    # override opus profile
+  python ProgressTracking/runner/run_tasks.py --sonnet-profile NAME  # override sonnet profile
 """
 
 import argparse
@@ -48,11 +53,9 @@ TRACKER_FILE = WORKSPACE / "ProgressTracking" / "TRACKER.md"
 LOG_DIR      = WORKSPACE / "tmp" / "logs"
 ENV_FILE     = WORKSPACE / ".env"
 
-# Per-phase model defaults (override via args or env vars)
-DEFAULT_SPEC_MODEL   = "opus"
-DEFAULT_PLAN_MODEL   = "opus"
-DEFAULT_BUILD_MODEL  = "sonnet"
-DEFAULT_REVIEW_MODEL = "opus"
+# Default codemie executables (override via env or args)
+DEFAULT_AGENT_CMD  = "codemie-claude"
+DEFAULT_SWITCH_CMD = "codemie"
 
 # Paths safe to git-stage — excludes .env, secrets, binaries
 GIT_STAGE_PATHS = [
@@ -453,35 +456,57 @@ def git_stage_safe() -> bool:
 
 
 # ── Agent runner ──────────────────────────────────────────────────────────────
+def switch_profile(profile: str, switch_cmd: str, dry_run: bool) -> bool:
+    """Run 'codemie profile switch <profile>'. Returns True on success."""
+    if dry_run:
+        logging.info("  [DRY RUN] profile switch -> %s", profile)
+        return True
+    logging.info("  Switching profile -> %s", profile)
+    r = subprocess.run(
+        [switch_cmd, "profile", "switch", profile],
+        cwd=str(WORKSPACE),
+        capture_output=True,
+        text=True,
+    )
+    if r.returncode != 0:
+        logging.error(
+            "  Profile switch failed (exit %d): %s",
+            r.returncode, r.stderr or r.stdout,
+        )
+    return r.returncode == 0
+
+
 def run_agent(
     prompt: str,
     label: str,
     log_file: Path,
     dry_run: bool,
-    agent_cmd: str = "codemie-claude",
-    model: str | None = None,
+    agent_cmd: str = DEFAULT_AGENT_CMD,
     profile: str | None = None,
+    switch_cmd: str = DEFAULT_SWITCH_CMD,
 ) -> bool:
-    """Run codemie-claude --task PROMPT. Returns True on success."""
+    """Switch to profile then run: codemie-claude "PROMPT". Returns True on success."""
 
-    cmd = [agent_cmd, "--task", prompt]
-    if model and model != "auto":
-        cmd += ["--model", model]
     if profile:
-        cmd += ["--profile", profile]
+        if not switch_profile(profile, switch_cmd, dry_run):
+            logging.error("  Skipping %s — profile switch failed.", label)
+            return False
+
+    cmd = [agent_cmd, prompt]
 
     if dry_run:
         preview = prompt[:160].replace("\n", " ") + ("..." if len(prompt) > 160 else "")
-        logging.info("[DRY RUN] %s  (model: %s)", label, model or "default")
+        logging.info("[DRY RUN] %s  (profile: %s)", label, profile or "current")
         logging.info("  Prompt preview: %s", preview)
         return True
 
-    logging.info("Running: %s  (model: %s)", label, model or "default")
+    logging.info("Running: %s  (profile: %s)", label, profile or "current")
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
     with log_file.open("w", encoding="utf-8") as fh:
         fh.write(f"=== {label} ===\n")
-        fh.write(f"Started: {datetime.now().isoformat()}\n\n")
+        fh.write(f"Profile : {profile or 'current'}\n")
+        fh.write(f"Started : {datetime.now().isoformat()}\n\n")
         fh.write(f"--- PROMPT ---\n{prompt}\n\n--- OUTPUT ---\n")
         fh.flush()
 
@@ -495,12 +520,9 @@ def run_agent(
             )
         except FileNotFoundError:
             fh.write("\n--- ERROR: codemie-claude not found ---\n")
-            fh.write(
-                "Install: npm install -g codemie-code\n"
-                "Or set CODEMIE_AGENT_CMD / --agent-cmd to the full path.\n"
-            )
+            fh.write("Install: npm install -g codemie-code\n")
             logging.error(
-                "codemie-claude '%s' not found. Install or set CODEMIE_AGENT_CMD / --agent-cmd.",
+                "codemie-claude '%s' not found. Install or set CODEMIE_AGENT_CMD.",
                 agent_cmd,
             )
             return False
@@ -557,23 +579,19 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--agent-cmd", default=None, metavar="CMD",
-        help="codemie-claude executable (default: codemie-claude; or set CODEMIE_AGENT_CMD)",
+        help="codemie-claude executable (default: codemie-claude or CODEMIE_AGENT_CMD)",
     )
     p.add_argument(
-        "--plan-model", default=None, metavar="MODEL",
-        help=f"Model for spec+plan phases (default: {DEFAULT_PLAN_MODEL} or CODEMIE_PLAN_MODEL)",
+        "--switch-cmd", default=None, metavar="CMD",
+        help="codemie executable for profile switch (default: codemie or CODEMIE_SWITCH_CMD)",
     )
     p.add_argument(
-        "--build-model", default=None, metavar="MODEL",
-        help=f"Model for build phase (default: {DEFAULT_BUILD_MODEL} or CODEMIE_BUILD_MODEL)",
+        "--opus-profile", default=None, metavar="NAME",
+        help="Profile for spec/plan/review phases (default: CODEMIE_OPUS_PROFILE from .env)",
     )
     p.add_argument(
-        "--review-model", default=None, metavar="MODEL",
-        help=f"Model for review phase (default: {DEFAULT_REVIEW_MODEL} or CODEMIE_REVIEW_MODEL)",
-    )
-    p.add_argument(
-        "--profile", default=None, metavar="PROFILE",
-        help="codemie-claude profile name (or set CODEMIE_PROFILE)",
+        "--sonnet-profile", default=None, metavar="NAME",
+        help="Profile for build phase (default: CODEMIE_SONNET_PROFILE from .env)",
     )
     p.add_argument(
         "--no-commit", action="store_true",
@@ -601,11 +619,10 @@ def main() -> None:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     setup_logging(run_id)
 
-    agent_cmd    = args.agent_cmd    or os.environ.get("CODEMIE_AGENT_CMD")    or "codemie-claude"
-    plan_model   = args.plan_model   or os.environ.get("CODEMIE_PLAN_MODEL")   or DEFAULT_PLAN_MODEL
-    build_model  = args.build_model  or os.environ.get("CODEMIE_BUILD_MODEL")  or DEFAULT_BUILD_MODEL
-    review_model = args.review_model or os.environ.get("CODEMIE_REVIEW_MODEL") or DEFAULT_REVIEW_MODEL
-    profile      = args.profile or os.environ.get("CODEMIE_PROFILE")
+    agent_cmd      = args.agent_cmd     or os.environ.get("CODEMIE_AGENT_CMD")    or DEFAULT_AGENT_CMD
+    switch_cmd     = args.switch_cmd    or os.environ.get("CODEMIE_SWITCH_CMD")   or DEFAULT_SWITCH_CMD
+    opus_profile   = args.opus_profile  or os.environ.get("CODEMIE_OPUS_PROFILE")
+    sonnet_profile = args.sonnet_profile or os.environ.get("CODEMIE_SONNET_PROFILE")
 
     start_section = args.section if args.section is not None else args.start_section
     tasks = load_all_tasks(
@@ -619,12 +636,12 @@ def main() -> None:
 
     SPECS_DIR.mkdir(parents=True, exist_ok=True)
 
-    logging.info("Run ID   : %s", run_id)
-    logging.info("Workspace: %s", WORKSPACE)
-    logging.info("Agent    : %s", agent_cmd)
-    logging.info("Models   : spec/plan=%s  build=%s  review=%s", plan_model, build_model, review_model)
-    if profile:
-        logging.info("Profile  : %s", profile)
+    logging.info("Run ID      : %s", run_id)
+    logging.info("Workspace   : %s", WORKSPACE)
+    logging.info("Agent cmd   : %s", agent_cmd)
+    logging.info("Switch cmd  : %s", switch_cmd)
+    logging.info("Opus profile: %s  (spec/plan/review)", opus_profile or "(not set)")
+    logging.info("Snnt profile: %s  (build)", sonnet_profile or "(not set)")
     if args.section is not None:
         logging.info("Tasks    : %d  (section %02d only, task from %d)",
                      len(tasks), args.section, args.start_task)
@@ -664,8 +681,8 @@ def main() -> None:
                     spec_log,
                     args.dry_run,
                     agent_cmd,
-                    plan_model,
-                    profile,
+                    opus_profile,
+                    switch_cmd,
                 )
                 if not ok and args.stop_on_error:
                     logging.error("Stopping (--stop-on-error) after failed FEATURE SPEC.")
@@ -697,8 +714,8 @@ def main() -> None:
                     log_file,
                     args.dry_run,
                     agent_cmd,
-                    plan_model,
-                    profile,
+                    opus_profile,
+                    switch_cmd,
                 )
                 if not ok:
                     failed.append(f"{task.label} [DESIGN]")
@@ -727,8 +744,8 @@ def main() -> None:
                         log_file,
                         args.dry_run,
                         agent_cmd,
-                        build_model,
-                        profile,
+                        sonnet_profile,
+                        switch_cmd,
                     )
                     build_ran = True
                     if not build_ok:
@@ -749,8 +766,8 @@ def main() -> None:
                 review_log,
                 args.dry_run,
                 agent_cmd,
-                review_model,
-                profile,
+                opus_profile,
+                switch_cmd,
             )
             approved = log_contains_approved(review_log) if review_log.exists() else False
             if not approved and not args.dry_run:
