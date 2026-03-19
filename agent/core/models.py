@@ -157,6 +157,15 @@ class ProjectReference(BaseModel):
     date_modified: date | None = None
 
 
+class DeduplicationResult(BaseModel):
+    """Output of Stage 5 — deduplication decision."""
+
+    route_to_merge: bool = False
+    similar_note_path: str = ""
+    similarity_score: float = 0.0
+    related_note_paths: list[str] = Field(default_factory=list)
+
+
 __all__ = [
     "SourceType",
     "ContentAge",
@@ -171,4 +180,5 @@ __all__ = [
     "ProcessingRecord",
     "PersonReference",
     "ProjectReference",
+    "DeduplicationResult",
 ]
