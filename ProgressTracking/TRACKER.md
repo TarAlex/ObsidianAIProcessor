@@ -10,7 +10,7 @@
 - [ IN_PROGRESS ]  agent/core/config.py  (YAML + .env loading, Config Pydantic model)  → spec: ProgressTracking/specs/config-py.md
 - [ IN_PROGRESS ]  agent/core/models.py  (all v1.1 models: NormalizedItem, ClassificationResult,
              SummaryResult, VerbatimBlock, VerbatimType, StatenessRisk, ProcessingStatus)  → spec: ProgressTracking/specs/models-py.md
-- [ TODO ]  agent/core/pipeline.py  (stage orchestrator, error routing to to_review/)
+- [ IN_PROGRESS ]  agent/core/pipeline.py  (stage orchestrator, error routing to to_review/)  → spec: ProgressTracking/specs/pipeline-py.md
 - [ TODO ]  agent/core/watcher.py  (watchdog InboxWatcher)
 - [ TODO ]  agent/core/scheduler.py  (APScheduler: weekly outdated-review, daily index-rebuild)
 
