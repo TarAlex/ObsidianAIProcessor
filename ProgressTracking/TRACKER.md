@@ -59,13 +59,13 @@
 - [ DONE ]  verbatim.py  ★  (render_verbatim_block, parse_verbatim_blocks — round-trip lossless)  → spec: ProgressTracking/specs/vault-verbatim.md
 - [ DONE ]  templates.py  (Jinja2 template loader from _AI_META/templates/)  → spec: ProgressTracking/specs/templates-py.md
 - [ DONE ]  references.py  (REFERENCES/ CRUD: people, work projects, personal projects)  → spec: ProgressTracking/specs/references-py.md
-- [ TODO ]  archive.py
+- [ IN_PROGRESS ]  archive.py  → spec: ProgressTracking/specs/archive-py.md
 
 ---
 
 ## Pipeline Stages  (agent/stages/)
 
-- [ TODO ]  s1_normalize.py
+- [ IN_PROGRESS ]  s1_normalize.py  → spec: ProgressTracking/specs/s1-normalize.md
 - [ DONE ]  s2_classify.py  (uses prompts/classify.md via ProviderFactory)
 - [ TODO ]  s3_dates.py
 - [ DONE ]  s4a_summarize.py  (uses prompts/summarize.md)
