@@ -1,301 +1,369 @@
-# obsidian-agent
+# Obsidian AI Processor
 
-**obsidian-agent** is a Python 3.11+ CLI that turns raw inputs (YouTube, web articles, PDFs, Markdown notes, Teams transcripts, optional audio) into structured Obsidian notes. It runs a **local-LLM-first** seven-stage pipeline: normalize, classify, dates, summarize, verbatim extraction, deduplicate, write + index, archive.
+> Drop any file into your Obsidian inbox. The agent reads it, understands it, and files it as a structured, tagged, interlinked permanent note — automatically.
 
-**Authoritative design docs** (read these for depth):
+**obsidian-agent** is a Python 3.11+ CLI that ingests YouTube videos, web articles, PDFs, Markdown notes, and Teams transcripts and turns them into clean Obsidian knowledge notes through a local-LLM-first seven-stage pipeline. Your content never leaves your machine unless you explicitly opt into a cloud provider.
 
-| Document | Contents |
-|----------|----------|
-| [docs/architecture.md](docs/architecture.md) | Pipeline, modules, config schema, CLI, verbatim/index contracts (v1.1) |
-| [docs/requirements.md](docs/requirements.md) | Goals, vault layout, `_index.md` rules, non-goals |
+---
+
+## What it does
+
+| You drop… | The agent produces… |
+|---|---|
+| A YouTube link | A summarised knowledge note with key ideas, timestamps, and verbatim quotes |
+| A PDF article | Structured notes with domain tags, source metadata, and extracted code/prompts |
+| A raw Markdown note | A classified, linked permanent note in the right domain folder |
+| A Teams VTT transcript | A meeting summary with action items and speaker quotes preserved |
+| An audio recording *(optional)* | Whisper transcription → same pipeline as above |
+
+Every output note gets: domain classification, date provenance, staleness tracking, wikilinks to people/projects, and a slot in the right `_index.md` for navigation at scale.
 
 ---
 
 ## Table of contents
 
-- [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Configuration](#configuration)
-- [Usage](#usage)
-- [Scripts](#scripts)
-- [How processing works (short)](#how-processing-works-short)
+- [Commands](#commands)
+- [How the pipeline works](#how-the-pipeline-works)
 - [Vault layout](#vault-layout)
-- [Best practices and recommendations](#best-practices-and-recommendations)
-- [Development and testing](#development-and-testing)
+- [Obsidian plugins](#obsidian-plugins)
+- [Best practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
-
----
-
-## Features
-
-- **Multi-source adapters** — YouTube transcripts, HTTP + HTML→Markdown, PDF (PyMuPDF), Markdown/notes, Teams VTT; optional Whisper for audio (`pip install -e ".[audio]"`).
-- **Privacy-first** — Default path uses **Ollama** (or LM Studio) on your machine. OpenAI and Anthropic are **opt-in** via env vars and YAML.
-- **Vault integrity** — All writes go through `ObsidianVault`; atomic note writes; low-confidence items can route to `01_PROCESSING/to_review/`.
-- **Verbatim preservation** — Code, prompts, quotes, and transcripts are extracted and stored in a **lossless** wire format (see architecture §7).
-- **Domain navigation** — `02_KNOWLEDGE/` domains/subdomains get `_index.md` files with maintained `note_count` and Bases-oriented bodies.
-- **Deduplication** — ChromaDB-backed similarity for merge/review decisions (Stage 5).
-- **Scheduled tasks** — Weekly outdated review, daily index rebuild hooks (APScheduler in daemon mode).
+- [Further reading](#further-reading)
 
 ---
 
 ## Requirements
 
-- **Python** 3.11 or newer
-- **Obsidian vault** with the expected folder zones (see [Vault layout](#vault-layout))
-- **LLM runtime** (recommended): [Ollama](https://ollama.com/) with models matching your `agent-config.yaml` (e.g. chat + embedding models)
-- **Optional**: API keys in `.env` only if you use cloud providers (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`)
+| Requirement | Notes |
+|---|---|
+| **Python 3.11+** | |
+| **Obsidian vault** | Existing vault or a fresh folder |
+| **Ollama** (recommended) | Local LLM runtime — [install here](https://ollama.com/). Pull a chat model + an embedding model matching your `agent-config.yaml`. |
+| **OpenAI / Anthropic keys** | Optional. Only needed if you enable cloud providers. |
+
+> **Privacy note:** By default the agent uses only Ollama running on your machine. No content is sent to external servers unless you configure a cloud provider.
 
 ---
 
 ## Installation
 
-From the repository root:
-
 ```bash
-# Editable install (CLI: obsidian-agent)
+# 1. Clone the repo
+git clone https://github.com/TarAlex/ObsidianAIProcessor.git
+cd ObsidianAIProcessor
+
+# 2. Install the CLI (editable, so code changes take effect immediately)
 pip install -e .
 
-# With dev dependencies (pytest, coverage, httpx mock)
+# 3. With dev tools (pytest, coverage, httpx mock)
 pip install -e ".[dev]"
 
-# Optional: Whisper / audio adapter (large PyTorch stack)
+# 4. Optional: Whisper audio support (large PyTorch download)
 pip install -e ".[audio]"
 ```
 
-The console entry point is **`obsidian-agent`** (see `pyproject.toml` → `[project.scripts]`).
+The CLI command is **`obsidian-agent`** after installation.
 
 ---
 
 ## Quick start
 
-1. **Clone or copy** this repo and install as above.
+Follow these five steps to go from zero to a running agent.
 
-2. **Prepare your vault** — Use your real Obsidian vault path or a copy. Ensure zones exist or will be created as you adopt the structure in `docs/requirements.md` §2.
+### Step 1 — Prepare your vault
 
-3. **Create `_AI_META/agent-config.yaml`** inside the vault (see [Configuration](#configuration)). Set `vault.root` to the **absolute path** of the vault.
+Point the agent at an existing Obsidian vault, or create a new folder. The agent will create missing zone folders automatically, but you need the config file in place first (Step 2).
 
-4. **Bootstrap `_index.md` files** (idempotent; does not overwrite existing):
+### Step 2 — Create the config file
 
-   ```bash
-   python scripts/setup_vault.py --config /path/to/your/vault/_AI_META/agent-config.yaml
-   ```
+Create `_AI_META/agent-config.yaml` inside your vault. The minimum required fields are:
 
-5. **Optional `.env`** — Copy [.env.example](.env.example) to `.env` next to the config or in the working directory. **Never commit `.env`.**
+```yaml
+vault:
+  root: /absolute/path/to/your/vault   # ← change this
 
-6. **Run the agent** from a directory where the default config path resolves, or pass `--config` with an absolute path:
+llm:
+  default_provider: ollama
+  providers:
+    ollama:
+      base_url: http://localhost:11434
+      chat_model: llama3.2             # or whichever model you have pulled
+      embedding_model: nomic-embed-text
 
-   ```bash
-   cd /path/to/your/vault
-   obsidian-agent run
-   ```
+scheduler:
+  poll_interval_s: 30
+```
 
-   Drop files under `00_INBOX/` (per your layout). The daemon watches the inbox and processes new items.
+See [docs/architecture.md](docs/architecture.md) §10 for the full config schema with all optional fields explained.
+
+### Step 3 — Set up environment variables (optional)
+
+If you plan to use cloud LLM providers, copy `.env.example` to `.env` next to the config file and fill in your keys:
+
+```bash
+cp .env.example .env
+# Edit .env — add OPENAI_API_KEY or ANTHROPIC_API_KEY as needed
+```
+
+> **Never commit `.env` or put API keys directly in YAML.** The agent rejects inline keys in YAML by design — use `api_key_env` pointing to the variable name instead.
+
+### Step 4 — Bootstrap vault indexes
+
+This creates all required `_index.md` files under `02_KNOWLEDGE/` and other zones. It never overwrites files that already exist.
+
+```bash
+python scripts/setup_vault.py --config /path/to/vault/_AI_META/agent-config.yaml
+```
+
+### Step 5 — Run the agent
+
+```bash
+# From inside the vault directory (config is found automatically):
+cd /path/to/your/vault
+obsidian-agent run
+
+# Or pass the config path explicitly (recommended in scripts and automation):
+obsidian-agent run --config /path/to/vault/_AI_META/agent-config.yaml
+```
+
+Drop any supported file into `00_INBOX/` and the daemon will pick it up within the configured poll interval. Press `Ctrl+C` to stop.
 
 ---
 
 ## Configuration
 
-### Where config lives
+### Config file location
 
-- Primary file: **`_AI_META/agent-config.yaml`** (recommended location inside the vault).
-- The CLI defaults to `_AI_META/agent-config.yaml` **relative to the current working directory**, unless you pass `--config /absolute/or/relative/path`.
+The CLI looks for `_AI_META/agent-config.yaml` **relative to the current working directory** unless you pass `--config`. Always use an absolute path in automation (systemd, Task Scheduler, CI).
 
-### Loading rules
+### Security rules
 
-- **YAML** is validated into a Pydantic `AgentConfig`.
-- **`.env`** is loaded from the YAML file’s directory first, then the current working directory (`override=False`).
-- **Security**: literal `api_key` fields in YAML under `llm.providers` are **rejected** — use `api_key_env` pointing to an environment variable name only.
-- **`vault.root`** must exist on disk or `load_config` raises `ConfigError`.
+- **API keys must live in `.env`**, not in YAML. Use `api_key_env: OPENAI_API_KEY` in YAML.
+- `vault.root` must exist on disk — the agent raises `ConfigError` immediately if it doesn't.
+- `.env` is loaded from the YAML file's directory first, then the working directory.
 
-### Minimal example
+### Key config sections
 
-See **§10 Configuration Schema** in [docs/architecture.md](docs/architecture.md). Key sections:
+| Section | What it controls |
+|---|---|
+| `vault` | Root path, review/merge thresholds, verbatim limits, staleness age |
+| `llm` | Default provider, per-provider model settings, task routing (which model handles classify vs summarise vs embed) |
+| `scheduler` | Inbox poll interval, day/time for weekly staleness review |
+| `sync` | Obsidian Sync lock-file detection settings (important for mobile sync) |
+| `whisper` | Audio transcription model size and language |
 
-| Section | Purpose |
-|---------|---------|
-| `vault` | `root`, thresholds, `max_verbatim_blocks_per_note`, `verbatim_high_risk_age` |
-| `llm` | `default_provider`, `providers.*`, `task_routing` (classification, summarization, verbatim, embeddings) |
-| `whisper` | Audio model settings |
-| `scheduler` | Poll interval, outdated-review day/hour |
-| `sync` | Obsidian Sync lock polling before writes |
-
-### Environment variables
-
-| Variable | When needed |
-|----------|-------------|
-| `OPENAI_API_KEY` | OpenAI provider |
-| `ANTHROPIC_API_KEY` | Anthropic provider |
-| `OLLAMA_BASE_URL` | Override Ollama base URL (e.g. embedder tests / non-default host) |
+Full schema with defaults: [docs/architecture.md §10](docs/architecture.md).
 
 ---
 
-## Usage
+## Commands
 
-All commands accept **`--config`** (default: `_AI_META/agent-config.yaml`) and optional **`--dry-run`** where implemented.
+All commands accept `--config` and `--dry-run` where applicable. Use `--dry-run` first on any command that writes to your vault.
 
 ### `obsidian-agent run`
 
-Long-running **daemon**: watches the inbox, runs the pipeline on new files, starts the **scheduler** (weekly outdated review, daily index-related jobs).
+Long-running daemon. Watches `00_INBOX/`, processes new files, and runs scheduled jobs (weekly staleness review, daily index rebuild hooks).
 
 ```bash
-obsidian-agent run --config /path/to/vault/_AI_META/agent-config.yaml
-obsidian-agent run --dry-run   # exercise flow without destructive writes where supported
+obsidian-agent run
+obsidian-agent run --dry-run    # Trace the flow without writing anything
 ```
 
 Stop with `Ctrl+C`.
 
 ### `obsidian-agent process-file`
 
-One-shot: process a **single file** through the full pipeline.
+Process a single file through the full pipeline. Useful for testing a specific item without starting the watcher.
 
 ```bash
-obsidian-agent process-file /path/to/note.md --config /path/to/vault/_AI_META/agent-config.yaml
+obsidian-agent process-file /path/to/note.md
 ```
-
-Useful for debugging a specific inbox item without running the watcher.
 
 ### `obsidian-agent rebuild-indexes`
 
-Recomputes **`note_count`** (and related frontmatter) for domain/subdomain **`_index.md`** files from the actual note files on disk.
+Recomputes `note_count` and related frontmatter in all `_index.md` files from actual files on disk. Run this after bulk imports or manual file moves.
 
 ```bash
-obsidian-agent rebuild-indexes --config /path/to/vault/_AI_META/agent-config.yaml
-obsidian-agent rebuild-indexes --dry-run
+obsidian-agent rebuild-indexes
+obsidian-agent rebuild-indexes --dry-run    # Preview changes only
 ```
-
-Run after bulk imports, manual file moves, or if counts drifted.
 
 ### `obsidian-agent outdated-review`
 
-Scans **`02_KNOWLEDGE/`** for notes past `review_after` and for **high-risk verbatim** blocks older than `verbatim_high_risk_age`. Writes **`_AI_META/outdated-review.md`** (or prints in dry-run).
+Scans `02_KNOWLEDGE/` for notes past their `review_after` date and verbatim blocks (code, prompts, quotes) older than `verbatim_high_risk_age`. Writes a summary to `_AI_META/outdated-review.md`.
 
 ```bash
-obsidian-agent outdated-review --config /path/to/vault/_AI_META/agent-config.yaml
-obsidian-agent outdated-review --dry-run
+obsidian-agent outdated-review
+obsidian-agent outdated-review --dry-run    # Print report without writing
 ```
 
----
-
-## Scripts
+### Utility scripts
 
 | Script | Purpose |
-|--------|---------|
-| [scripts/setup_vault.py](scripts/setup_vault.py) | Ensure all expected `_index.md` files exist from templates; **never overwrites** existing files |
-| [scripts/reindex.py](scripts/reindex.py) | CLI wrapper around the same rebuild logic as `rebuild-indexes` |
-
-Example:
-
-```bash
-python scripts/setup_vault.py --config /path/to/vault/_AI_META/agent-config.yaml
-python scripts/reindex.py --help
-```
+|---|---|
+| `python scripts/setup_vault.py` | Create missing `_index.md` files from templates (idempotent) |
+| `python scripts/reindex.py` | Alias for `rebuild-indexes` as a standalone script |
 
 ---
 
-## How processing works (short)
+## How the pipeline works
 
-1. **S1 Normalize** — Adapter produces a `NormalizedItem`.
-2. **S2 Classify** — LLM + `prompts/classify.md` → domain, `domain_path`, confidence, tags, etc.
-3. **S3 Dates** — Normalize dates on the item.
-4. **S4a Summarize** — Summary and structured fields.
-5. **S4b Verbatim** — Second LLM pass; extracts `VerbatimBlock`s (code, prompt, quote, transcript) with **byte-identical** content rules.
-6. **S5 Deduplicate** — Vector similarity; may route to merge/review.
-7. **S6a Write** — Jinja templates → source + knowledge notes under `02_KNOWLEDGE/{domain_path}/`.
-8. **S6b Index update** — Increments parent domain/subdomain `_index.md` counts.
-9. **S7 Archive** — Moves processed inbox artifact to **`05_ARCHIVE/`**.
+Every file that lands in `00_INBOX/` travels through seven stages:
 
-Details, diagrams, and stage contracts: [docs/architecture.md](docs/architecture.md) §5–§8.
+```
+00_INBOX/
+    │
+    ▼
+S1  NORMALIZE ── detect type, extract raw text, pull metadata
+    │
+    ▼
+S2  CLASSIFY ── LLM assigns domain, subdomain, tags, confidence score
+    │               └─ low confidence → routed to 01_PROCESSING/to_review/
+    ▼
+S3  DATE EXTRACTION ── parse creation date from metadata / URL / file mtime
+    │
+    ▼
+S4a SUMMARIZE ── LLM generates summary, key ideas, action items, wikilinks
+S4b VERBATIM ── second LLM pass extracts code, prompts, quotes, transcripts verbatim
+    │
+    ▼
+S5  DEDUPLICATE ── ChromaDB vector similarity; may route to to_merge/ for human review
+    │
+    ▼
+S6a WRITE ── Jinja templates render source + knowledge notes under 02_KNOWLEDGE/
+S6b INDEX UPDATE ── parent domain and subdomain _index.md counters incremented
+S6c REFERENCES ── person/project wikilinks created or updated
+    │
+    ▼
+S7  ARCHIVE ── original inbox file moved to 05_ARCHIVE/YYYY/MM/
+```
+
+**Verbatim preservation** is a first-class feature: code blocks, LLM prompts, attributed quotes, and transcript segments are extracted in a lossless wire format with their own staleness tracking — independent of the parent note's review date.
+
+For full stage contracts, data models, and diagrams see [docs/architecture.md](docs/architecture.md) §5–§8.
 
 ---
 
 ## Vault layout
 
-High-level zones (see [docs/requirements.md](docs/requirements.md) §2 for the full tree):
+```
+VAULT_ROOT/
+├── 00_INBOX/              ← Drop files here
+│   ├── recordings/
+│   ├── articles/
+│   ├── trainings/
+│   ├── raw_notes/
+│   └── external_data/
+│
+├── 01_PROCESSING/         ← Agent working area (transient; do not edit manually)
+│   ├── to_classify/
+│   ├── to_merge/
+│   └── to_review/         ← Items flagged for your review (low confidence)
+│
+├── 02_KNOWLEDGE/          ← Permanent structured notes
+│   ├── _index.md          ← Master knowledge map (auto-maintained)
+│   ├── wellbeing/
+│   │   ├── _index.md
+│   │   ├── health/
+│   │   ├── nutrition/
+│   │   └── …
+│   ├── professional_dev/
+│   │   ├── _index.md
+│   │   ├── ai_tools/
+│   │   └── …
+│   └── [your domains]/
+│
+├── 03_PROJECTS/           ← Project hubs, tasks, decisions
+├── 04_PERSONAL/           ← Journal, goals, reflections
+├── 05_ARCHIVE/            ← Processed originals by YYYY/MM/
+├── 06_ATOMS/              ← Phase 2: single-concept atomic notes
+├── REFERENCES/            ← People and project reference cards
+└── _AI_META/              ← Agent config, templates, logs, prompts
+    ├── agent-config.yaml
+    ├── tag-taxonomy.md
+    ├── outdated-review.md
+    ├── processing-log.md
+    └── templates/
+```
 
-| Path | Role |
-|------|------|
-| `00_INBOX/` | Drop new content here |
-| `01_PROCESSING/` | Transient; `to_review/`, `to_merge/`, etc. |
-| `02_KNOWLEDGE/` | Permanent notes; each domain/subdomain has `_index.md` |
-| `03_PROJECTS/`, `04_PERSONAL/` | Project and personal zones |
-| `05_ARCHIVE/` | Processed originals by date |
-| `06_ATOMS/` | Phase 2 (not required for Phase 1) |
-| `REFERENCES/` | People and project reference notes |
-| `_AI_META/` | `agent-config.yaml`, templates, logs, `outdated-review.md`, etc. |
+Every domain and subdomain folder under `02_KNOWLEDGE/` contains an `_index.md` — an auto-maintained table of contents that also serves as a stable entry point for agent queries.
+
+For the full tree with all subdomains see [docs/requirements.md §2](docs/requirements.md).
 
 ---
 
-## Best practices and recommendations
+## Obsidian plugins
 
-### Privacy and providers
+Install these in Obsidian (Settings → Community plugins) for the full experience:
 
-- Prefer **Ollama** or **LM Studio** for classification, summarization, and verbatim extraction so content stays on your machine.
-- Enable **OpenAI/Anthropic** only when needed; keep keys in **`.env`**, not in YAML.
-- Align **`task_routing`** models with what you actually pull locally (RAM, speed).
+| Plugin | Purpose |
+|---|---|
+| **Remotely Save** | Cross-device sync via OneDrive or WebDAV with E2E encryption |
+| **Bases** | Dynamic views on frontmatter — replaces Dataview for all agent-generated indexes |
+| **Templater** | Template execution inside Obsidian; point it at `_AI_META/templates/` |
+| **Local GPT** | Interactive LLM chat inside notes via Ollama endpoint |
+| **Obsidian AI Providers** | LLM provider config shared across plugins |
+| **Web Clipper** | Browser extension; target inbox: `00_INBOX/articles/` |
 
-### Obsidian Sync and mobile
+> **Note:** This project uses **Bases**, not Dataview. Do not install Dataview — the two conflict on the same query blocks.
 
-- The agent checks for **`.sync-*` / `.syncing`** under the vault root before writes (`sync` section in config). **Do not delete** these while Obsidian Sync is running; tune `lock_wait_timeout_s` and `sync_poll_interval_s` if you see timeouts on slow devices.
-- **Recommendation**: run the agent on the same machine that holds the canonical vault, or ensure sync completes before batch processing.
+---
 
-### Thresholds and review queue
+## Best practices
 
-- **`review_threshold`** (vault/LLM sections): lower values send more items to **`to_review/`** — safer when the classifier is uncertain.
-- **`merge_threshold` / `related_threshold`**: affect dedup and merge suggestions; adjust after you inspect false positives/negatives in your corpus.
+### Privacy and LLM providers
+
+- Keep **Ollama** as your default for classification, summarisation, and verbatim extraction — content stays on your machine.
+- Enable cloud providers (OpenAI, Anthropic) only for specific tasks via `task_routing` in the config.
+- Align `task_routing` model assignments with what you actually have pulled locally — mismatches cause silent fallbacks.
+
+### Sync and mobile
+
+- The agent checks for `.sync-*` / `.syncing` lock files before every write. If you use Obsidian Sync, **do not delete these files** while the app is open.
+- Run the agent on the same machine that holds the canonical vault, or wait for sync to complete before batch processing.
+- If you see frequent sync timeouts, increase `lock_wait_timeout_s` and `sync_poll_interval_s` in the config.
+
+### Review queue tuning
+
+- **`review_threshold`**: lower value → more items routed to `to_review/` → safer, more manual work.
+- **`merge_threshold` / `related_threshold`**: tune after inspecting false positives in your corpus.
 
 ### Verbatim and staleness
 
-- Keep **`max_verbatim_blocks_per_note`** aligned with prompt and template expectations (default 10 in architecture).
-- Use **`verbatim_high_risk_age`** with **`outdated-review`** to surface old code/prompt blocks that may need human refresh.
+- `max_verbatim_blocks_per_note` (default: 10) controls how many code/prompt/quote blocks are kept per note. The highest-signal ones are kept; the rest are logged.
+- Run `obsidian-agent outdated-review` weekly to surface old verbatim blocks that may need refreshing — especially code snippets and LLM prompts.
 
-### Operations
+### Operations hygiene
 
-- Use **`--dry-run`** first on **`rebuild-indexes`** and **`outdated-review`** in production-adjacent vaults.
-- Run **`setup_vault.py`** after adding new domains/subdomains so `_index.md` exists before the first note write.
-- Prefer **absolute paths** for `--config` in automation (systemd, Task Scheduler, CI).
-
-### Security
-
-- **Never commit** `.env`, API keys, or personal vault paths into git.
-- The project rejects inline **`api_key`** in YAML — use **`api_key_env`** only.
-
----
-
-## Development and testing
-
-```bash
-pip install -e ".[dev]"
-pytest tests/unit -q
-pytest tests/integration -q
-# Skip tests that need live Ollama or slow timing:
-pytest tests -m "not integration" -q
-```
-
-- **Integration** tests that hit real Ollama are marked `@pytest.mark.integration`.
-- Fixture data lives under **`tests/fixtures/`**; do not embed large fixture strings in test code.
-
-Project conventions: **`AGENTS.md`**, **`CLAUDE.md`**, and **`ProgressTracking/TRACKER.md`** (if you use the repo’s agent workflow).
+- Always run `--dry-run` before first use of `rebuild-indexes` or `outdated-review` on an important vault.
+- Re-run `setup_vault.py` after adding new domains so `_index.md` exists before the first note write.
+- Use **absolute paths** in `--config` for any automation.
 
 ---
 
 ## Troubleshooting
 
-| Issue | What to check |
-|-------|----------------|
-| `ConfigError: vault.root does not exist` | Path in YAML; drive letters / WSL paths on Windows |
-| `Config file not found` | CWD vs `--config`; use absolute path |
-| Ollama connection errors | `ollama serve`, `base_url` in YAML, firewall |
-| Pipeline sends everything to review | Lower confidence or tune prompts / model |
-| Hangs before processing | Obsidian Sync lock files; see **sync** settings |
-| `move_to_review` / vault errors | All writes must go through `ObsidianVault` (for contributors extending the code) |
+| Symptom | What to check |
+|---|---|
+| `ConfigError: vault.root does not exist` | Check the path in YAML; on Windows watch out for drive letters and WSL path differences |
+| `Config file not found` | Check your current working directory vs `--config`; prefer absolute paths |
+| Ollama connection errors | Run `ollama serve`, verify `base_url` in YAML, check firewall |
+| Everything goes to `to_review/` | Lower `ai_confidence` threshold, or improve/tune the classify prompt |
+| Agent hangs before processing | Obsidian Sync lock files present — check `sync` config section |
+| Vault write errors | All writes must go through `ObsidianVault`; avoid direct file edits in `01_PROCESSING/` |
 
 ---
 
-## Version and docs
+## Further reading
 
-- **Package version**: see `pyproject.toml` (`version = "0.2.0"` at time of writing).
-- **Architecture / requirements version**: **1.1** (see headers in `docs/architecture.md` and `docs/requirements.md`).
+| Document | Contents |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | Pipeline internals, module contracts, full config schema, verbatim wire format (v1.1) |
+| [docs/requirements.md](docs/requirements.md) | Goals, vault layout specification, non-goals, phase 2 roadmap |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Dev cycle, testing, code conventions, contributing |
 
-If doc filenames differ on disk (`architecture.md` vs `ARCHITECTURE.md`), use the paths under **`docs/`** in this repository.
+**Package version:** see `pyproject.toml`. **Spec version:** 1.1 (see headers in `docs/architecture.md` and `docs/requirements.md`).
