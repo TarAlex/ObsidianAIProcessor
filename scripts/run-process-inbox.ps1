@@ -29,5 +29,6 @@ if ($PythonExe) {
 
 $stamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 Add-Content -LiteralPath $log -Value "`n===== $stamp =====`n"
-& $py -m agent process-inbox --config $cfg *>> $log
+# -P (Python 3.11+): omit cwd from sys.path so ./agent never shadows site-packages.
+& $py -P -m agent process-inbox --config $cfg *>> $log
 exit $LASTEXITCODE

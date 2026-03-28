@@ -86,6 +86,8 @@ Optional: `OBSIDIAN_AGENT_REPO_URL`, `OBSIDIAN_AGENT_GIT_REF` (default `master` 
 irm https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/master/scripts/install.ps1 | iex
 ```
 
+The installer runs `configure` / `seed-templates` / `setup-vault` with **`python -P -m agent`** from a **temp working directory** so a local **`./agent`** tree (for example inside a git clone) does not shadow the package you just installed with pip. Requires **Python 3.11+** (the `-P` flag).
+
 ---
 
 ## Quick start

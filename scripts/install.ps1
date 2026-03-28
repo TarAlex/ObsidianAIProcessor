@@ -111,6 +111,12 @@ function Invoke-Py {
     }
 }
 
+# Python 3.11+: -P keeps cwd off sys.path so a local ./agent folder never shadows pip/git install.
+function Invoke-AgentCli {
+    param([Parameter(Mandatory = $true)][string[]] $ArgumentList)
+    Invoke-Py -ArgumentList (@("-P", "-m", "agent") + $ArgumentList)
+}
+
 if ($Local) {
     if (-not $PSScriptRoot) {
         Write-Error "-Local requires running this script from disk (not via piped iex)."
@@ -136,39 +142,43 @@ if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
 $VaultAbs = (Resolve-Path -LiteralPath $Vault).Path
 $Cfg = Join-Path $VaultAbs "_AI_META\agent-config.yaml"
 
-Write-Host "[install] configure $VaultAbs"
-Invoke-Py -ArgumentList @(
-    "-m", "agent", "configure", "--non-interactive",
-    "--vault", $VaultAbs,
-    "--config", $Cfg,
-    "--provider", "ollama",
-    "--ollama-url", $OllamaUrl,
-    "--ollama-model", $ChatModel,
-    "--embedding-model", $EmbedModel
-)
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "configure failed (exit $LASTEXITCODE)"
-    exit $LASTEXITCODE
-}
-
-Write-Host "[install] copy default templates to _AI_META/templates"
+# Run obsidian-agent from a neutral cwd + python -P so ./agent in repo root never shadows site-packages.
+$NeutralWd = [System.IO.Path]::GetTempPath()
 $prevWd = Get-Location
 try {
-    Set-Location ([System.IO.Path]::GetTempPath())
-    Invoke-Py -ArgumentList @("-m", "agent", "seed-templates", $VaultAbs)
+    Set-Location $NeutralWd
+    Write-Host "[install] agent CLI cwd=$NeutralWd (python -P; avoids local ./agent vs pip install)"
+
+    Write-Host "[install] configure $VaultAbs"
+    Invoke-AgentCli -ArgumentList @(
+        "configure", "--non-interactive",
+        "--vault", $VaultAbs,
+        "--config", $Cfg,
+        "--provider", "ollama",
+        "--ollama-url", $OllamaUrl,
+        "--ollama-model", $ChatModel,
+        "--embedding-model", $EmbedModel
+    )
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "configure failed (exit $LASTEXITCODE)"
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "[install] copy default templates to _AI_META/templates"
+    Invoke-AgentCli -ArgumentList @("seed-templates", $VaultAbs)
     if ($LASTEXITCODE -ne 0) {
         Write-Error "seed-templates failed (exit $LASTEXITCODE). Try: pip install --upgrade git+${RepoUrl}@${GitRef}"
         exit $LASTEXITCODE
     }
+
+    Write-Host "[install] setup-vault"
+    Invoke-AgentCli -ArgumentList @("setup-vault", "--config", $Cfg)
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "setup-vault failed (exit $LASTEXITCODE). See stderr above."
+        exit $LASTEXITCODE
+    }
 } finally {
     Set-Location $prevWd
-}
-
-Write-Host "[install] setup-vault"
-Invoke-Py -ArgumentList @("-m", "agent", "setup-vault", "--config", $Cfg)
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "setup-vault failed (exit $LASTEXITCODE). See stderr above."
-    exit $LASTEXITCODE
 }
 
 Write-Host "[install] Done. Run: cd `"$VaultAbs`"; obsidian-agent run"

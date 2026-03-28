@@ -85,28 +85,30 @@ fi
 
 VAULT_ABS="$(cd "$VAULT" && pwd)"
 CFG="$VAULT_ABS/_AI_META/agent-config.yaml"
-
-echo "[install] configure vault at $VAULT_ABS"
-"$PY" -m agent configure --non-interactive \
-  --vault "$VAULT_ABS" \
-  --config "$CFG" \
-  --provider ollama \
-  --ollama-url "$OLLAMA_URL" \
-  --ollama-model "$CHAT_MODEL" \
-  --embedding-model "$EMBED_MODEL"
-
-echo "[install] copy default templates to _AI_META/templates"
 _seed_dir="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
+
+# Neutral cwd + python -P: a ./agent directory in the current folder must not shadow the pip package.
+echo "[install] agent CLI from $_seed_dir (python -P; avoids local ./agent vs pip install)"
 (
   cd "$_seed_dir" || exit 1
-  "$PY" -m agent seed-templates "$VAULT_ABS"
+  echo "[install] configure vault at $VAULT_ABS"
+  "$PY" -P -m agent configure --non-interactive \
+    --vault "$VAULT_ABS" \
+    --config "$CFG" \
+    --provider ollama \
+    --ollama-url "$OLLAMA_URL" \
+    --ollama-model "$CHAT_MODEL" \
+    --embedding-model "$EMBED_MODEL"
+
+  echo "[install] copy default templates to _AI_META/templates"
+  "$PY" -P -m agent seed-templates "$VAULT_ABS"
+
+  echo "[install] setup-vault"
+  "$PY" -P -m agent setup-vault --config "$CFG"
 ) || {
-  echo "ERROR: seed-templates failed (upgrade package: pip install -U obsidian-agent or git URL)" >&2
+  echo "ERROR: configure / seed-templates / setup-vault failed (upgrade: pip install -U git+${REPO_URL}@${REPO_REF})" >&2
   exit 1
 }
-
-echo "[install] setup-vault"
-"$PY" -m agent setup-vault --config "$CFG"
 
 echo "[install] Done. Run: cd \"$VAULT_ABS\" && obsidian-agent run"
 echo "         (or: $PY -m agent run --config \"$CFG\")"
