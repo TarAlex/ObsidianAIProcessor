@@ -48,6 +48,7 @@ def test_all_commands_listed():
     assert "configure" in result.output
     assert "setup-vault" in result.output
     assert "seed-templates" in result.output
+    assert "process-inbox" in result.output
 
 
 # ---------------------------------------------------------------------------
@@ -239,3 +240,29 @@ def test_outdated_review_dry_run():
     call_args = mock_run.call_args[0]
     assert call_args[0].__module__ == "agent.tasks.outdated_review"
     assert call_args[3] is True  # dry_run=True
+
+
+# ---------------------------------------------------------------------------
+# process-inbox command
+# ---------------------------------------------------------------------------
+
+
+def test_process_inbox_calls_anyio_run():
+    runner = CliRunner()
+    cfg = _make_cfg()
+    with patch("agent.main.load_config", return_value=cfg):
+        with patch("agent.main.anyio.run", return_value=(2, 0)) as mock_run:
+            result = runner.invoke(cli, ["process-inbox", "--config", "cfg.yaml"])
+    assert result.exit_code == 0
+    assert "2 ok, 0 failed" in result.output
+    mock_run.assert_called_once()
+    assert mock_run.call_args[0][0].__name__ == "_process_inbox"
+
+
+def test_process_inbox_nonzero_exit_on_failures():
+    runner = CliRunner()
+    cfg = _make_cfg()
+    with patch("agent.main.load_config", return_value=cfg):
+        with patch("agent.main.anyio.run", return_value=(0, 1)):
+            result = runner.invoke(cli, ["process-inbox", "--config", "cfg.yaml"])
+    assert result.exit_code != 0

@@ -13,6 +13,17 @@ from pathlib import Path
 from agent.core.models import DomainIndexEntry, ProcessingRecord
 from agent.vault.note import parse_note, render_note
 
+# Subfolders created under 00_INBOX / 01_PROCESSING by ensure_operational_directories
+# (matches README vault layout).
+INBOX_SEED_SUBFOLDERS: tuple[str, ...] = (
+    "recordings",
+    "articles",
+    "trainings",
+    "raw_notes",
+    "external_data",
+)
+PROCESSING_SEED_SUBFOLDERS: tuple[str, ...] = ("to_classify", "to_merge", "to_review")
+
 
 class ObsidianVault:
 
@@ -29,6 +40,38 @@ class ObsidianVault:
         self.meta = root / "_AI_META"
         self.merge_dir = self.processing / "to_merge"
         self.review_dir = self.processing / "to_review"
+
+    def ensure_operational_directories(self, *, dry_run: bool = False) -> dict[str, int]:
+        """Create 00_INBOX (with seed subfolders) and 01_PROCESSING tree if missing.
+
+        Idempotent. Does not delete or rename existing paths. If a path exists but is
+        not a directory, raises NotADirectoryError.
+
+        Returns counts: ``created``, ``existed``, ``would_create`` (dry-run only).
+        """
+        paths: list[Path] = [self.inbox]
+        paths += [self.inbox / name for name in INBOX_SEED_SUBFOLDERS]
+        paths += [self.processing]
+        paths += [self.processing / name for name in PROCESSING_SEED_SUBFOLDERS]
+
+        created = existed = would_create = 0
+        for p in paths:
+            if p.exists():
+                if not p.is_dir():
+                    msg = f"Expected a directory for operational layout: {p}"
+                    raise NotADirectoryError(msg)
+                existed += 1
+            elif dry_run:
+                would_create += 1
+            else:
+                p.mkdir(parents=True, exist_ok=True)
+                created += 1
+
+        return {
+            "created": created,
+            "existed": existed,
+            "would_create": would_create,
+        }
 
     # ── core I/O ──────────────────────────────────────────────────────────────
 

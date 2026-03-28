@@ -277,3 +277,19 @@ def test_setup_vault_main_seeds_builtin_templates(tmp_path):
     assert result == 0
     assert (vault_root / "_AI_META" / "templates" / "domain_index.md").exists()
     assert (vault_root / "_AI_META" / "templates" / "subdomain_index.md").exists()
+    assert (vault_root / "00_INBOX" / "articles").is_dir()
+    assert (vault_root / "01_PROCESSING" / "to_classify").is_dir()
+
+
+def test_dry_run_reports_operational_dirs(tmp_path, capsys):
+    vault_root = tmp_path / "vault"
+    vault_root.mkdir()
+    config_file = tmp_path / "agent-config.yaml"
+    _write_config(config_file, vault_root)
+
+    with patch(RENDER_TARGET, return_value=STUB_BODY):
+        exit_code = main(["--config", str(config_file), "--dry-run"])
+
+    assert exit_code == 0
+    out = capsys.readouterr().out
+    assert "operational dirs" in out.lower()

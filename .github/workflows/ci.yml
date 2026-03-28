@@ -39,6 +39,7 @@ jobs:
           python -m agent configure --help
           python -m agent setup-vault --help
           python -m agent seed-templates --help
+          python -m agent process-inbox --help
 
       - name: Run unit tests
         run: |

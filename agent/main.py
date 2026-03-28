@@ -140,6 +140,70 @@ def process_file(file: str, config: str, dry_run: bool) -> None:
 
 
 # ---------------------------------------------------------------------------
+# process-inbox — batch scan (for scheduled runs)
+# ---------------------------------------------------------------------------
+
+
+async def _process_inbox(cfg, dry_run: bool) -> tuple[int, int]:
+    """Walk 00_INBOX recursively; process each eligible file. Returns (ok, failed)."""
+    from agent.core.watcher import InboxWatcher  # noqa: PLC0415
+
+    vault = ObsidianVault(cfg.vault_root)
+    inbox = vault.inbox
+    if not inbox.is_dir():
+        return (0, 0)
+
+    candidates: list[Path] = []
+    for path in sorted(inbox.rglob("*")):
+        if not path.is_file():
+            continue
+        if path.name.startswith("."):
+            continue
+        if path.suffix.lower() in InboxWatcher.SKIP_SUFFIXES:
+            continue
+        candidates.append(path)
+
+    if not candidates:
+        return (0, 0)
+
+    pipeline = KnowledgePipeline(cfg, vault, dry_run=dry_run)
+    ok = failed = 0
+    for path in candidates:
+        try:
+            record = await pipeline.process_file(path)
+            out = getattr(record, "output_path", "") or ""
+            click.echo(f"[OK] {path.name} -> {out}")
+            ok += 1
+        except Exception as exc:
+            click.echo(f"[FAIL] {path}: {exc}", err=True)
+            failed += 1
+
+    return (ok, failed)
+
+
+@cli.command("process-inbox")
+@click.option("--config", default=DEFAULT_CONFIG, show_default=True)
+@click.option("--dry-run", is_flag=True, default=False)
+def process_inbox_cmd(config: str, dry_run: bool) -> None:
+    """Process all files under 00_INBOX/ (recursive). For use with a periodic scheduler."""
+    try:
+        cfg = load_config(config)
+    except ConfigError as e:
+        raise click.ClickException(str(e))
+    except Exception as e:
+        raise click.ClickException(f"Unexpected error: {e}")
+    try:
+        ok, failed = anyio.run(_process_inbox, cfg, dry_run)
+        click.echo(f"process-inbox: {ok} ok, {failed} failed.")
+        if failed:
+            raise click.ClickException("One or more inbox files failed.")
+    except click.ClickException:
+        raise
+    except Exception as e:
+        raise click.ClickException(f"Unexpected error: {e}")
+
+
+# ---------------------------------------------------------------------------
 # rebuild-indexes
 # ---------------------------------------------------------------------------
 

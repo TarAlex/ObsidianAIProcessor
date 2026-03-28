@@ -169,3 +169,5 @@ if ($PyPrefix.Count -eq 1) {
 } else {
     Write-Host "         or: $($PyPrefix -join ' ') -m agent run --config `"$Cfg`""
 }
+Write-Host "[install] Periodic inbox (Windows): scripts/schedule-inbox-windows.ps1 -Install -VaultRoot `"$VaultAbs`""
+Write-Host "[install] Periodic inbox (Linux/macOS): see scripts/schedule-inbox-linux.example.sh"

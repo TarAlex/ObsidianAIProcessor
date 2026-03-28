@@ -54,6 +54,29 @@ def _make_index(v: ObsidianVault, rel: str, note_count: int = 0, body: str = "ba
 
 # ── zone paths ────────────────────────────────────────────────────────────────
 
+def test_ensure_operational_directories_creates_inbox_and_processing(tmp_path):
+    v = _vault(tmp_path)
+    counts = v.ensure_operational_directories()
+    # 1 inbox + 5 subfolders + processing + 3 subfolders = 10 paths
+    assert counts["created"] == 10
+    assert counts["existed"] == 0
+    assert v.inbox.is_dir()
+    assert (v.inbox / "articles").is_dir()
+    assert (v.processing / "to_classify").is_dir()
+
+    second = v.ensure_operational_directories()
+    assert second["created"] == 0
+    assert second["existed"] == 10
+
+
+def test_ensure_operational_directories_dry_run_counts(tmp_path):
+    v = _vault(tmp_path)
+    c = v.ensure_operational_directories(dry_run=True)
+    assert c["would_create"] == 10
+    assert c["created"] == 0
+    assert not v.inbox.exists()
+
+
 def test_zone_paths_derived_from_root(tmp_path):
     v = _vault(tmp_path)
     assert v.root == tmp_path

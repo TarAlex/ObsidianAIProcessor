@@ -110,3 +110,5 @@ echo "[install] setup-vault"
 
 echo "[install] Done. Run: cd \"$VAULT_ABS\" && obsidian-agent run"
 echo "         (or: $PY -m agent run --config \"$CFG\")"
+echo "[install] Periodic inbox (Windows): scripts/schedule-inbox-windows.ps1 -Install -VaultRoot \"$VAULT_ABS\""
+echo "[install] Periodic inbox (Linux/macOS): see scripts/schedule-inbox-linux.example.sh"

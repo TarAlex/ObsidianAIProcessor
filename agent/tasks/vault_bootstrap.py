@@ -77,6 +77,23 @@ def setup_vault_main(config_path: str, dry_run: bool = False) -> int:
 
     vault = ObsidianVault(config.vault_root)
 
+    try:
+        dir_counts = vault.ensure_operational_directories(dry_run=dry_run)
+    except NotADirectoryError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    if dry_run:
+        print(
+            f"Dry-run: operational dirs — {dir_counts['would_create']} would be created, "
+            f"{dir_counts['existed']} already exist."
+        )
+    else:
+        print(
+            f"Operational dirs: {dir_counts['created']} created, "
+            f"{dir_counts['existed']} already present."
+        )
+
     if not dry_run:
         ensure_builtin_templates(config.vault_root)
 
