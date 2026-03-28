@@ -3,17 +3,19 @@
 # directory as the Obsidian vault. Works on macOS, Linux, and Git Bash on Windows.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/master/scripts/install.sh | bash
 #   ./scripts/install.sh [--vault PATH] [--local]
 #
 # Environment:
-#   OBSIDIAN_AGENT_REPO_URL  Git URL (default: https://github.com/TarAlex/ObsidianAIProcessor.git)
+#   OBSIDIAN_AGENT_REPO_URL   Git URL (default: https://github.com/TarAlex/ObsidianAIProcessor.git)
+#   OBSIDIAN_AGENT_GIT_REF    Branch/ref for pip git+ install (default: master)
 #   OLLAMA_CHAT_MODEL        Default Ollama chat model (default: llama3.1:8b)
 #   OLLAMA_EMBED_MODEL       Default embedding model (default: nomic-embed-text)
 #   OLLAMA_BASE_URL          Passed to configure (default: http://127.0.0.1:11434)
 set -euo pipefail
 
 REPO_URL="${OBSIDIAN_AGENT_REPO_URL:-https://github.com/TarAlex/ObsidianAIProcessor.git}"
+REPO_REF="${OBSIDIAN_AGENT_GIT_REF:-master}"
 CHAT_MODEL="${OLLAMA_CHAT_MODEL:-llama3.1:8b}"
 EMBED_MODEL="${OLLAMA_EMBED_MODEL:-nomic-embed-text}"
 OLLAMA_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
@@ -65,8 +67,8 @@ if [[ "$LOCAL" -eq 1 ]]; then
   echo "[install] pip install -e $ROOT"
   "$PY" -m pip install -e "$ROOT"
 else
-  echo "[install] pip install from $REPO_URL@main"
-  "$PY" -m pip install "git+${REPO_URL}@main"
+  echo "[install] pip install from $REPO_URL@$REPO_REF"
+  "$PY" -m pip install "git+${REPO_URL}@${REPO_REF}"
 fi
 
 if ! command -v ollama >/dev/null 2>&1; then

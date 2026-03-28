@@ -1,5 +1,5 @@
 # Install obsidian-agent from GitHub and bootstrap the current folder as vault.
-# Run: irm https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/main/scripts/install.ps1 | iex
+# Run: irm https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/master/scripts/install.ps1 | iex
 # Or:  powershell -ExecutionPolicy Bypass -File scripts\install.ps1 [-Vault path] [-Local]
 
 param(
@@ -10,6 +10,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $RepoUrl = if ($env:OBSIDIAN_AGENT_REPO_URL) { $env:OBSIDIAN_AGENT_REPO_URL } else { "https://github.com/TarAlex/ObsidianAIProcessor.git" }
+$GitRef = if ($env:OBSIDIAN_AGENT_GIT_REF) { $env:OBSIDIAN_AGENT_GIT_REF } else { "master" }
 $ChatModel = if ($env:OLLAMA_CHAT_MODEL) { $env:OLLAMA_CHAT_MODEL } else { "llama3.1:8b" }
 $EmbedModel = if ($env:OLLAMA_EMBED_MODEL) { $env:OLLAMA_EMBED_MODEL } else { "nomic-embed-text" }
 $OllamaUrl = if ($env:OLLAMA_BASE_URL) { $env:OLLAMA_BASE_URL } else { "http://127.0.0.1:11434" }
@@ -50,7 +51,7 @@ if ($Local) {
     Write-Host "[install] pip install -e $Root"
     Invoke-Py @("-m", "pip", "install", "-e", $Root)
 } else {
-    $spec = "git+${RepoUrl}@main"
+    $spec = "git+${RepoUrl}@${GitRef}"
     Write-Host "[install] pip install $spec"
     Invoke-Py @("-m", "pip", "install", $spec)
 }

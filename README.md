@@ -75,15 +75,15 @@ Uses the **current directory** as the vault root: installs the package, pulls de
 **macOS / Linux / Git Bash on Windows:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/master/scripts/install.sh | bash
 ```
 
-Optional: `OBSIDIAN_AGENT_REPO_URL`, `OLLAMA_CHAT_MODEL`, `OLLAMA_EMBED_MODEL`, `OLLAMA_BASE_URL`. From a git clone use `--local` to `pip install -e` the repo root.
+Optional: `OBSIDIAN_AGENT_REPO_URL`, `OBSIDIAN_AGENT_GIT_REF` (default `master` — raw URLs must match your GitHub default branch), `OLLAMA_CHAT_MODEL`, `OLLAMA_EMBED_MODEL`, `OLLAMA_BASE_URL`. From a git clone use `--local` to `pip install -e` the repo root.
 
 **Windows PowerShell** (review scripts before `iex`; you must trust this repository):
 
 ```powershell
-irm https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/master/scripts/install.ps1 | iex
 ```
 
 ---
