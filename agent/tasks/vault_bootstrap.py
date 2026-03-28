@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 from agent.core.config import ConfigError, load_config
 from agent.vault.vault import ObsidianVault

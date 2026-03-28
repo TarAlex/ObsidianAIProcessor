@@ -284,7 +284,7 @@ class TestExceptionInStage:
         record = await pipeline.process_file(raw_path)
 
         assert record.errors == ["dates broke"]
-        vault.move_to_review.assert_called_once_with(raw_path, error="dates broke")
+        vault.move_to_review.assert_called_once_with(raw_path, reason="dates broke")
         # finally block must still fire even after exception
         vault.append_log.assert_called_once_with(record)
 

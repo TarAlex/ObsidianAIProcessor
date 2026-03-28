@@ -17,8 +17,9 @@ from pathlib import Path
 
 import anyio
 
-from agent.adapters.base import AdapterError, BaseAdapter
+from agent.adapters.base import BaseAdapter
 from agent.adapters.audio_adapter import AudioAdapter
+from agent.adapters.markitdown_adapter import MarkItDownAdapter
 from agent.adapters.markdown_adapter import MarkdownAdapter
 from agent.adapters.pdf_adapter import PDFAdapter
 from agent.adapters.teams_adapter import TeamsAdapter
@@ -53,6 +54,14 @@ def _build_ext_map() -> dict[str, type[BaseAdapter]]:
         ".htm":    WebAdapter,
         ".url":    WebAdapter,    # sidecar URL files — YouTube handled in adapter
         ".webloc": WebAdapter,
+        ".docx":   MarkItDownAdapter,
+        ".doc":    MarkItDownAdapter,
+        ".pptx":   MarkItDownAdapter,
+        ".ppt":    MarkItDownAdapter,
+        ".xlsx":   MarkItDownAdapter,
+        ".xls":    MarkItDownAdapter,
+        ".epub":   MarkItDownAdapter,
+        ".youtube": YouTubeAdapter,
     }
 
 
