@@ -66,7 +66,25 @@ pip install -e ".[dev]"
 pip install -e ".[audio]"
 ```
 
-The CLI command is **`obsidian-agent`** after installation.
+The CLI command is **`obsidian-agent`** after installation. The same entry point is available as **`python -m agent`** (useful when `Scripts/` is not on `PATH`).
+
+### One-line install from GitHub
+
+Uses the **current directory** as the vault root: installs the package, pulls default Ollama models (if `ollama` is on `PATH`), writes `_AI_META/agent-config.yaml`, and runs index bootstrap.
+
+**macOS / Linux / Git Bash on Windows:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/main/scripts/install.sh | bash
+```
+
+Optional: `OBSIDIAN_AGENT_REPO_URL`, `OLLAMA_CHAT_MODEL`, `OLLAMA_EMBED_MODEL`, `OLLAMA_BASE_URL`. From a git clone use `--local` to `pip install -e` the repo root.
+
+**Windows PowerShell** (review scripts before `iex`; you must trust this repository):
+
+```powershell
+irm https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/main/scripts/install.ps1 | iex
+```
 
 ---
 
@@ -82,6 +100,8 @@ Point the agent at an existing Obsidian vault, or create a new folder. The agent
 
 Create `_AI_META/agent-config.yaml` inside your vault. The minimum required fields are:
 
+Prefer **`obsidian-agent configure`** (interactive wizard) or **`obsidian-agent configure --non-interactive ...`** to generate this file; YAML comments are not preserved on rewrite.
+
 ```yaml
 vault:
   root: /absolute/path/to/your/vault   # ← change this
@@ -91,11 +111,11 @@ llm:
   providers:
     ollama:
       base_url: http://localhost:11434
-      chat_model: llama3.2             # or whichever model you have pulled
+      default_model: llama3.1:8b       # chat model you pulled in Ollama
       embedding_model: nomic-embed-text
 
 scheduler:
-  poll_interval_s: 30
+  poll_interval_minutes: 15
 ```
 
 See [docs/architecture.md](docs/architecture.md) §10 for the full config schema with all optional fields explained.
@@ -116,7 +136,9 @@ cp .env.example .env
 This creates all required `_index.md` files under `02_KNOWLEDGE/` and other zones. It never overwrites files that already exist.
 
 ```bash
-python scripts/setup_vault.py --config /path/to/vault/_AI_META/agent-config.yaml
+obsidian-agent setup-vault --config /path/to/vault/_AI_META/agent-config.yaml
+# or: python -m agent setup-vault --config ...
+# or: python scripts/setup_vault.py --config ...
 ```
 
 ### Step 5 — Run the agent
@@ -164,6 +186,23 @@ Full schema with defaults: [docs/architecture.md §10](docs/architecture.md).
 
 All commands accept `--config` and `--dry-run` where applicable. Use `--dry-run` first on any command that writes to your vault.
 
+### `obsidian-agent configure`
+
+Interactive menu to set vault path, default LLM provider (Ollama, LM Studio, OpenAI, Anthropic, Gemini), models, and API keys (keys are written to `_AI_META/.env` only). Use **`--non-interactive`** with flags such as `--vault`, `--provider`, `--ollama-model`, `--openai-key`, etc., for scripts and installers.
+
+```bash
+obsidian-agent configure
+obsidian-agent configure --non-interactive --vault /path/to/vault --provider ollama --ollama-model llama3.1:8b
+```
+
+### `obsidian-agent setup-vault`
+
+Ensures expected `_index.md` files exist (same as `python scripts/setup_vault.py`).
+
+```bash
+obsidian-agent setup-vault --config /path/to/vault/_AI_META/agent-config.yaml
+```
+
 ### `obsidian-agent run`
 
 Long-running daemon. Watches `00_INBOX/`, processes new files, and runs scheduled jobs (weekly staleness review, daily index rebuild hooks).
@@ -203,9 +242,10 @@ obsidian-agent outdated-review --dry-run    # Print report without writing
 
 ### Utility scripts
 
-| Script | Purpose |
+| Script / command | Purpose |
 |---|---|
-| `python scripts/setup_vault.py` | Create missing `_index.md` files from templates (idempotent) |
+| `obsidian-agent setup-vault` | Create missing `_index.md` files from templates (idempotent) |
+| `python scripts/setup_vault.py` | Same as above (repo checkout) |
 | `python scripts/reindex.py` | Alias for `rebuild-indexes` as a standalone script |
 
 ---

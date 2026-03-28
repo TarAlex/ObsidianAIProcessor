@@ -15,6 +15,7 @@ from agent.llm.ollama_provider import OllamaProvider
 from agent.llm.lmstudio_provider import LMStudioProvider
 from agent.llm.openai_provider import OpenAIProvider
 from agent.llm.anthropic_provider import AnthropicProvider
+from agent.llm.gemini_provider import GeminiProvider
 
 if TYPE_CHECKING:
     from agent.core.config import AgentConfig
@@ -32,6 +33,7 @@ _REGISTRY: dict[str, type[AbstractLLMProvider]] = {
     "lmstudio": LMStudioProvider,
     "openai": OpenAIProvider,
     "anthropic": AnthropicProvider,
+    "gemini": GeminiProvider,
 }
 
 

@@ -10,6 +10,7 @@ from pathlib import Path
 import anyio
 import click
 
+from agent.cli.configure_cmd import register_configure
 from agent.core.config import ConfigError, load_config
 from agent.core.pipeline import KnowledgePipeline
 from agent.core.scheduler import AgentScheduler
@@ -41,8 +42,32 @@ async def _daemon(cfg, dry_run: bool) -> None:
 # ---------------------------------------------------------------------------
 
 @click.group()
+@click.version_option("0.2.0", prog_name="obsidian-agent")
 def cli() -> None:
     """Obsidian AI-powered vault inbox processor."""
+
+
+register_configure(cli, DEFAULT_CONFIG)
+
+
+# ---------------------------------------------------------------------------
+# setup-vault — bootstrap _index.md files
+# ---------------------------------------------------------------------------
+
+@cli.command("setup-vault")
+@click.option("--config", default=DEFAULT_CONFIG, show_default=True)
+@click.option("--dry-run", is_flag=True, default=False)
+def setup_vault_cmd(config: str, dry_run: bool) -> None:
+    """Create missing domain/zone _index.md files (idempotent)."""
+    from agent.tasks.vault_bootstrap import setup_vault_main  # noqa: PLC0415
+
+    code = setup_vault_main(config, dry_run=dry_run)
+    if code == 1:
+        raise click.ClickException("Config load failed (see stderr).")
+    if code == 2:
+        raise click.ClickException("Template directory missing (see stderr).")
+    if code == 3:
+        raise click.ClickException("Setup finished with one or more per-file errors.")
 
 
 # ---------------------------------------------------------------------------

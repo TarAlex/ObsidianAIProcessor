@@ -45,6 +45,8 @@ def test_all_commands_listed():
     assert "process-file" in result.output
     assert "rebuild-indexes" in result.output
     assert "outdated-review" in result.output
+    assert "configure" in result.output
+    assert "setup-vault" in result.output
 
 
 # ---------------------------------------------------------------------------

@@ -936,7 +936,7 @@ vault:
 llm:
   default_provider: ollama
   review_threshold: 0.70
-  fallback_chain: [ollama, lmstudio, openai]
+  fallback_chain: [ollama, lmstudio, openai, gemini]
 
   providers:
     ollama:
@@ -954,6 +954,10 @@ llm:
     anthropic:
       api_key_env: "ANTHROPIC_API_KEY"
       default_model: "claude-sonnet-4-6"
+    gemini:
+      api_key_env: "GOOGLE_API_KEY"
+      default_model: "gemini-2.0-flash"
+      # base_url: optional custom API endpoint (Vertex / proxy)
 
   task_routing:
     classification: "ollama/llama3.1:8b"
