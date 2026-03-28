@@ -95,6 +95,9 @@ echo "[install] configure vault at $VAULT_ABS"
   --ollama-model "$CHAT_MODEL" \
   --embedding-model "$EMBED_MODEL"
 
+echo "[install] copy default templates to _AI_META/templates"
+"$PY" -c "from pathlib import Path; from agent.vault.template_seed import ensure_builtin_templates; import sys; ensure_builtin_templates(Path(sys.argv[1]))" "$VAULT_ABS"
+
 echo "[install] setup-vault"
 "$PY" -m agent setup-vault --config "$CFG"
 

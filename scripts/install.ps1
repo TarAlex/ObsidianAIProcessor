@@ -147,6 +147,13 @@ Invoke-Py -ArgumentList @(
     "--embedding-model", $EmbedModel
 )
 
+Write-Host "[install] copy default templates to _AI_META/templates"
+Invoke-Py -ArgumentList @(
+    "-c",
+    "from pathlib import Path; from agent.vault.template_seed import ensure_builtin_templates; import sys; ensure_builtin_templates(Path(sys.argv[1]))",
+    $VaultAbs
+)
+
 Write-Host "[install] setup-vault"
 Invoke-Py -ArgumentList @("-m", "agent", "setup-vault", "--config", $Cfg)
 

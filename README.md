@@ -70,7 +70,7 @@ The CLI command is **`obsidian-agent`** after installation. The same entry point
 
 ### One-line install from GitHub
 
-Uses the **current directory** as the vault root: installs the package, pulls default Ollama models (if `ollama` is on `PATH`), writes `_AI_META/agent-config.yaml`, and runs index bootstrap.
+Uses the **current directory** as the vault root: installs the package, pulls default Ollama models (if `ollama` is on `PATH`), writes `_AI_META/agent-config.yaml`, copies built-in Jinja templates into `_AI_META/templates/`, then runs index bootstrap (`setup-vault`).
 
 **macOS / Linux / Git Bash on Windows:**
 
