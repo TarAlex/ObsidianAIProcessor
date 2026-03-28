@@ -15,46 +15,100 @@ $ChatModel = if ($env:OLLAMA_CHAT_MODEL) { $env:OLLAMA_CHAT_MODEL } else { "llam
 $EmbedModel = if ($env:OLLAMA_EMBED_MODEL) { $env:OLLAMA_EMBED_MODEL } else { "nomic-embed-text" }
 $OllamaUrl = if ($env:OLLAMA_BASE_URL) { $env:OLLAMA_BASE_URL } else { "http://127.0.0.1:11434" }
 
-# Any Python 3.11+ is OK (project requires >=3.11 per pyproject.toml).
-function Test-PythonMin311 {
+$VersionCheck = "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"
+
+function Test-PythonExe {
+    param([string] $ExePath)
+    if (-not (Test-Path -LiteralPath $ExePath)) { return $false }
+    $old = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        & $ExePath -c $VersionCheck 2>$null
+        return ($LASTEXITCODE -eq 0)
+    } finally {
+        $ErrorActionPreference = $old
+    }
+}
+
+function Test-PythonCommand {
     param([string[]] $Prefix)
-    $code = "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"
     if ($Prefix.Count -lt 1) { return $false }
-    $oldErr = $ErrorActionPreference
+    $old = $ErrorActionPreference
     $ErrorActionPreference = "SilentlyContinue"
     try {
         if ($Prefix.Count -eq 1) {
-            & $Prefix[0] -c $code 2>$null
+            & $Prefix[0] -c $VersionCheck 2>$null
         } else {
-            & $Prefix[0] @($Prefix[1..($Prefix.Length - 1)] + @("-c", $code)) 2>$null
+            & $Prefix[0] @($Prefix[1..($Prefix.Length - 1)] + @("-c", $VersionCheck)) 2>$null
         }
         return ($LASTEXITCODE -eq 0)
     } finally {
-        $ErrorActionPreference = $oldErr
+        $ErrorActionPreference = $old
     }
 }
 
+# Resolve PyPrefix: string[] where [0] is exe path OR launcher name, rest are launcher args.
+# Prefer real python.exe paths from "py -0p" so we never hit a broken default (e.g. PY_PYTHON=3.11).
 $PyPrefix = $null
-$candidates = @(
-    @{ Name = "python"; Args = @("python") },
-    @{ Name = "py -3"; Args = @("py", "-3") },
-    @{ Name = "python3"; Args = @("python3") }
-)
-foreach ($c in $candidates) {
-    if (-not (Get-Command $c.Args[0] -ErrorAction SilentlyContinue)) { continue }
-    if (Test-PythonMin311 $c.Args) {
-        $PyPrefix = $c.Args
-        Write-Host "[install] Using $($c.Name) (Python 3.11+)"
-        break
+
+if (Get-Command py -ErrorAction SilentlyContinue) {
+    $list = & py -0p 2>&1 | ForEach-Object { $_.ToString() }
+    if ($LASTEXITCODE -eq 0 -and $list) {
+        $best = $null
+        foreach ($line in $list) {
+            $t = $line.Trim()
+            if ($t -notmatch '-V:(\d+)\.(\d+)(?:\s+\*)?\s+(.+)$') { continue }
+            $maj = [int]$Matches[1]
+            $min = [int]$Matches[2]
+            $exe = $Matches[3].Trim()
+            if ($maj -lt 3 -or ($maj -eq 3 -and $min -lt 11)) { continue }
+            if ($exe -notmatch '\.exe$') { continue }
+            if (Test-PythonExe $exe) {
+                $tuple = ($maj * 1000) + $min
+                if ($null -eq $best -or $tuple -gt $best.Tuple) {
+                    $best = @{ Tuple = $tuple; Exe = $exe }
+                }
+            }
+        }
+        if ($null -ne $best) {
+            $PyPrefix = @($best.Exe)
+            Write-Host "[install] Using $($best.Exe) (Python 3.11+ via py -0p)"
+        }
     }
 }
-if (-not $PyPrefix) {
-    Write-Error "Python 3.11 or newer not found (tried python, py -3, python3). Install from https://www.python.org/downloads/"
+
+if ($null -eq $PyPrefix) {
+    foreach ($name in @("python3", "python")) {
+        $cmd = Get-Command $name -ErrorAction SilentlyContinue
+        if (-not $cmd) { continue }
+        # Skip when `python` is the launcher binary (often tied to a missing 3.11 tag).
+        if ($cmd.Name -ieq "py.exe" -or $cmd.Source -match '[\\/]py\.exe$') { continue }
+        if (Test-PythonCommand @($name)) {
+            $PyPrefix = @($name)
+            Write-Host "[install] Using $name (Python 3.11+)"
+            break
+        }
+    }
+}
+
+if ($null -eq $PyPrefix -and (Get-Command py -ErrorAction SilentlyContinue)) {
+    if (Test-PythonCommand @("py", "-3")) {
+        $PyPrefix = @("py", "-3")
+        Write-Host "[install] Using py -3 (Python 3.11+)"
+    }
+}
+
+if ($null -eq $PyPrefix) {
+    Write-Error "Python 3.11 or newer not found. Install from https://www.python.org/downloads/ or run: py -0p"
 }
 
 function Invoke-Py {
-    param([string[]] $Args)
-    & $PyPrefix[0] @($PyPrefix[1..($PyPrefix.Length - 1)] + $Args)
+    param([Parameter(Mandatory = $true)][string[]] $ArgumentList)
+    if ($PyPrefix.Count -eq 1) {
+        & $PyPrefix[0] @ArgumentList
+    } else {
+        & $PyPrefix[0] @($PyPrefix[1..($PyPrefix.Length - 1)] + $ArgumentList)
+    }
 }
 
 if ($Local) {
@@ -63,11 +117,11 @@ if ($Local) {
     }
     $Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
     Write-Host "[install] pip install -e $Root"
-    Invoke-Py @("-m", "pip", "install", "-e", $Root)
+    Invoke-Py -ArgumentList @("-m", "pip", "install", "-e", $Root)
 } else {
     $spec = "git+${RepoUrl}@${GitRef}"
     Write-Host "[install] pip install $spec"
-    Invoke-Py @("-m", "pip", "install", $spec)
+    Invoke-Py -ArgumentList @("-m", "pip", "install", $spec)
 }
 
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
@@ -83,7 +137,7 @@ $VaultAbs = (Resolve-Path -LiteralPath $Vault).Path
 $Cfg = Join-Path $VaultAbs "_AI_META\agent-config.yaml"
 
 Write-Host "[install] configure $VaultAbs"
-Invoke-Py @(
+Invoke-Py -ArgumentList @(
     "-m", "agent", "configure", "--non-interactive",
     "--vault", $VaultAbs,
     "--config", $Cfg,
@@ -94,7 +148,11 @@ Invoke-Py @(
 )
 
 Write-Host "[install] setup-vault"
-Invoke-Py @("-m", "agent", "setup-vault", "--config", $Cfg)
+Invoke-Py -ArgumentList @("-m", "agent", "setup-vault", "--config", $Cfg)
 
 Write-Host "[install] Done. Run: cd `"$VaultAbs`"; obsidian-agent run"
-Write-Host "         or: $($PyPrefix -join ' ') -m agent run --config `"$Cfg`""
+if ($PyPrefix.Count -eq 1) {
+    Write-Host "         or: `"$($PyPrefix[0])`" -m agent run --config `"$Cfg`""
+} else {
+    Write-Host "         or: $($PyPrefix -join ' ') -m agent run --config `"$Cfg`""
+}
