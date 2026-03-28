@@ -129,6 +129,10 @@ if ($Local) {
     Write-Host "[install] pip install --upgrade $spec"
     Invoke-Py -ArgumentList @("-m", "pip", "install", "--upgrade", $spec)
 }
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "pip install failed (exit $LASTEXITCODE). Ensure git is installed (https://git-scm.com/downloads) and retry."
+    exit $LASTEXITCODE
+}
 
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
     Write-Warning "ollama not on PATH. Install from https://ollama.com then: ollama pull $ChatModel; ollama pull $EmbedModel"
@@ -141,6 +145,20 @@ if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
 
 $VaultAbs = (Resolve-Path -LiteralPath $Vault).Path
 $Cfg = Join-Path $VaultAbs "_AI_META\agent-config.yaml"
+
+Write-Host "[install] Vault root: $VaultAbs"
+
+# Seed vault directory layout from PowerShell directly so the folders always exist,
+# even if the Python agent CLI fails or an old cached package is used.
+Write-Host "[install] seeding vault directory layout"
+foreach ($sub in @(
+    "_AI_META",
+    "00_INBOX\recordings", "00_INBOX\articles", "00_INBOX\trainings",
+    "00_INBOX\raw_notes", "00_INBOX\external_data",
+    "01_PROCESSING\to_classify", "01_PROCESSING\to_merge", "01_PROCESSING\to_review"
+)) {
+    New-Item -ItemType Directory -Force -Path (Join-Path $VaultAbs $sub) | Out-Null
+}
 
 # Run obsidian-agent from a neutral cwd + python -P so ./agent in repo root never shadows site-packages.
 $NeutralWd = [System.IO.Path]::GetTempPath()
