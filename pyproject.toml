@@ -48,6 +48,9 @@ dev = [
 [tool.setuptools.packages.find]
 include = ["agent*"]
 
+[tool.setuptools.package-data]
+"agent.vault" = ["builtin_templates/*.md"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = [

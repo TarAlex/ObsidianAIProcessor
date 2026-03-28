@@ -133,7 +133,7 @@ cp .env.example .env
 
 ### Step 4 — Bootstrap vault indexes
 
-This creates all required `_index.md` files under `02_KNOWLEDGE/` and other zones. It never overwrites files that already exist.
+This creates all required `_index.md` files under `02_KNOWLEDGE/` and other zones. It never overwrites files that already exist. On first run it also copies default Jinja templates into `_AI_META/templates/` from the installed package if that folder is missing (needed after `pip install` without a full repo checkout).
 
 ```bash
 obsidian-agent setup-vault --config /path/to/vault/_AI_META/agent-config.yaml

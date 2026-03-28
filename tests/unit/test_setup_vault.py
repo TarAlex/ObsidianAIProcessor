@@ -257,7 +257,23 @@ def test_missing_template_dir_exits_2(tmp_path):
     def _raise_fnf(name, ctx, template_dir):
         raise FileNotFoundError(f"Template directory does not exist: {template_dir}")
 
-    with patch(RENDER_TARGET, side_effect=_raise_fnf):
-        result = main(["--config", str(config_file)])
+    # Skip automatic template seeding so render still sees a missing dir.
+    with patch("agent.tasks.vault_bootstrap.ensure_builtin_templates", lambda _p: None):
+        with patch(RENDER_TARGET, side_effect=_raise_fnf):
+            result = main(["--config", str(config_file)])
 
     assert result == 2
+
+
+def test_setup_vault_main_seeds_builtin_templates(tmp_path):
+    vault_root = tmp_path / "vault"
+    vault_root.mkdir()
+    config_file = tmp_path / "agent-config.yaml"
+    _write_config(config_file, vault_root)
+
+    with patch(RENDER_TARGET, return_value=STUB_BODY):
+        result = main(["--config", str(config_file)])
+
+    assert result == 0
+    assert (vault_root / "_AI_META" / "templates" / "domain_index.md").exists()
+    assert (vault_root / "_AI_META" / "templates" / "subdomain_index.md").exists()

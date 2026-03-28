@@ -4,6 +4,7 @@ from __future__ import annotations
 import sys
 
 from agent.core.config import ConfigError, load_config
+from agent.vault.template_seed import ensure_builtin_templates
 from agent.vault.vault import ObsidianVault
 
 
@@ -75,6 +76,9 @@ def setup_vault_main(config_path: str, dry_run: bool = False) -> int:
         return 1
 
     vault = ObsidianVault(config.vault_root)
+
+    if not dry_run:
+        ensure_builtin_templates(config.vault_root)
 
     try:
         counts = setup_vault(vault, dry_run=dry_run)
