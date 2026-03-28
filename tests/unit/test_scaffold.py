@@ -21,7 +21,7 @@ def _cli_cmd() -> list[str]:
 def test_agent_importable() -> None:
     import agent
 
-    assert agent.__version__ == "0.2.0"
+    assert agent.__version__ == "0.2.1"
 
 
 def test_all_subpackages_importable() -> None:
@@ -63,7 +63,7 @@ def test_cli_version() -> None:
         text=True,
     )
     assert result.returncode == 0
-    assert "0.2.0" in result.stdout
+    assert "0.2.1" in result.stdout
 
 
 @pytest.mark.xfail(

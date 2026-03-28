@@ -116,12 +116,12 @@ if ($Local) {
         Write-Error "-Local requires running this script from disk (not via piped iex)."
     }
     $Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-    Write-Host "[install] pip install -e $Root"
-    Invoke-Py -ArgumentList @("-m", "pip", "install", "-e", $Root)
+    Write-Host "[install] pip install --upgrade -e $Root"
+    Invoke-Py -ArgumentList @("-m", "pip", "install", "--upgrade", "-e", $Root)
 } else {
     $spec = "git+${RepoUrl}@${GitRef}"
-    Write-Host "[install] pip install $spec"
-    Invoke-Py -ArgumentList @("-m", "pip", "install", $spec)
+    Write-Host "[install] pip install --upgrade $spec"
+    Invoke-Py -ArgumentList @("-m", "pip", "install", "--upgrade", $spec)
 }
 
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
@@ -148,11 +148,17 @@ Invoke-Py -ArgumentList @(
 )
 
 Write-Host "[install] copy default templates to _AI_META/templates"
-Invoke-Py -ArgumentList @(
-    "-c",
-    "from pathlib import Path; from agent.vault.template_seed import ensure_builtin_templates; import sys; ensure_builtin_templates(Path(sys.argv[1]))",
-    $VaultAbs
-)
+$prevWd = Get-Location
+try {
+    Set-Location ([System.IO.Path]::GetTempPath())
+    Invoke-Py -ArgumentList @("-m", "agent", "seed-templates", $VaultAbs)
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "seed-templates failed (exit $LASTEXITCODE). Try: pip install --upgrade git+${RepoUrl}@${GitRef}"
+        exit $LASTEXITCODE
+    }
+} finally {
+    Set-Location $prevWd
+}
 
 Write-Host "[install] setup-vault"
 Invoke-Py -ArgumentList @("-m", "agent", "setup-vault", "--config", $Cfg)

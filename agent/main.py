@@ -42,7 +42,7 @@ async def _daemon(cfg, dry_run: bool) -> None:
 # ---------------------------------------------------------------------------
 
 @click.group()
-@click.version_option("0.2.0", prog_name="obsidian-agent")
+@click.version_option("0.2.1", prog_name="obsidian-agent")
 def cli() -> None:
     """Obsidian AI-powered vault inbox processor."""
 
@@ -68,6 +68,24 @@ def setup_vault_cmd(config: str, dry_run: bool) -> None:
         raise click.ClickException("Template directory missing (see stderr).")
     if code == 3:
         raise click.ClickException("Setup finished with one or more per-file errors.")
+
+
+# ---------------------------------------------------------------------------
+# seed-templates — copy built-in Jinja templates into vault (install/bootstrap)
+# ---------------------------------------------------------------------------
+
+@cli.command("seed-templates")
+@click.argument(
+    "vault_root",
+    type=click.Path(file_okay=False, dir_okay=True, path_type=Path),
+)
+def seed_templates_cmd(vault_root: Path) -> None:
+    """Copy default _index templates into VAULT_ROOT/_AI_META/templates/ if missing."""
+    from agent.vault.template_seed import ensure_builtin_templates  # noqa: PLC0415
+
+    root = vault_root.resolve()
+    ensure_builtin_templates(root)
+    click.echo(f"[OK] templates -> {root / '_AI_META' / 'templates'}")
 
 
 # ---------------------------------------------------------------------------

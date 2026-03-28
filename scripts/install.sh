@@ -67,10 +67,10 @@ if [[ "$LOCAL" -eq 1 ]]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
   echo "[install] pip install -e $ROOT"
-  "$PY" -m pip install -e "$ROOT"
+  "$PY" -m pip install --upgrade -e "$ROOT"
 else
-  echo "[install] pip install from $REPO_URL@$REPO_REF"
-  "$PY" -m pip install "git+${REPO_URL}@${REPO_REF}"
+  echo "[install] pip install --upgrade from $REPO_URL@$REPO_REF"
+  "$PY" -m pip install --upgrade "git+${REPO_URL}@${REPO_REF}"
 fi
 
 if ! command -v ollama >/dev/null 2>&1; then
@@ -96,7 +96,14 @@ echo "[install] configure vault at $VAULT_ABS"
   --embedding-model "$EMBED_MODEL"
 
 echo "[install] copy default templates to _AI_META/templates"
-"$PY" -c "from pathlib import Path; from agent.vault.template_seed import ensure_builtin_templates; import sys; ensure_builtin_templates(Path(sys.argv[1]))" "$VAULT_ABS"
+_seed_dir="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
+(
+  cd "$_seed_dir" || exit 1
+  "$PY" -m agent seed-templates "$VAULT_ABS"
+) || {
+  echo "ERROR: seed-templates failed (upgrade package: pip install -U obsidian-agent or git URL)" >&2
+  exit 1
+}
 
 echo "[install] setup-vault"
 "$PY" -m agent setup-vault --config "$CFG"

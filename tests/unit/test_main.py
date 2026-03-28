@@ -47,6 +47,7 @@ def test_all_commands_listed():
     assert "outdated-review" in result.output
     assert "configure" in result.output
     assert "setup-vault" in result.output
+    assert "seed-templates" in result.output
 
 
 # ---------------------------------------------------------------------------
