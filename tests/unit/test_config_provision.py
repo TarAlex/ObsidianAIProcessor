@@ -44,6 +44,8 @@ def test_provision_write_ollama(tmp_path: Path) -> None:
     assert "api_key" not in yaml.dump(raw)
     assert raw["vault"]["root"] == str(vault.resolve())
     assert raw["llm"]["default_provider"] == "ollama"
+    assert (vault / "00_INBOX" / "articles").is_dir()
+    assert (vault / "01_PROCESSING" / "to_review").is_dir()
 
 
 def test_provision_openai_no_secret_in_yaml(tmp_path: Path) -> None:

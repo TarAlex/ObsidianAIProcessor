@@ -146,6 +146,10 @@ Invoke-Py -ArgumentList @(
     "--ollama-model", $ChatModel,
     "--embedding-model", $EmbedModel
 )
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "configure failed (exit $LASTEXITCODE)"
+    exit $LASTEXITCODE
+}
 
 Write-Host "[install] copy default templates to _AI_META/templates"
 $prevWd = Get-Location
@@ -162,6 +166,10 @@ try {
 
 Write-Host "[install] setup-vault"
 Invoke-Py -ArgumentList @("-m", "agent", "setup-vault", "--config", $Cfg)
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "setup-vault failed (exit $LASTEXITCODE). See stderr above."
+    exit $LASTEXITCODE
+}
 
 Write-Host "[install] Done. Run: cd `"$VaultAbs`"; obsidian-agent run"
 if ($PyPrefix.Count -eq 1) {

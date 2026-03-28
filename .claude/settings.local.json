@@ -20,7 +20,8 @@
       "Bash(do:*)",
       "Bash(grep:*)",
       "Bash(python:*)",
-      "Bash(printf:*)"
+      "Bash(printf:*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

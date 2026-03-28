@@ -307,6 +307,10 @@ def provision_write(
     vault.mkdir(parents=True, exist_ok=True)
     (vault / "_AI_META").mkdir(parents=True, exist_ok=True)
 
+    from agent.vault.vault import ObsidianVault  # noqa: PLC0415
+
+    ObsidianVault(vault).ensure_operational_directories()
+
     cfg_path = config_path.resolve()
     base = load_yaml_dict(cfg_path) or minimal_config_template(str(vault))
     # Ensure vault.root in file matches spec even when loading stale YAML

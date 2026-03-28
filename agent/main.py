@@ -80,10 +80,15 @@ def setup_vault_cmd(config: str, dry_run: bool) -> None:
     type=click.Path(file_okay=False, dir_okay=True, path_type=Path),
 )
 def seed_templates_cmd(vault_root: Path) -> None:
-    """Copy default _index templates into VAULT_ROOT/_AI_META/templates/ if missing."""
+    """Ensure 00_INBOX / 01_PROCESSING trees, then copy default templates if missing."""
     from agent.vault.template_seed import ensure_builtin_templates  # noqa: PLC0415
+    from agent.vault.vault import ObsidianVault  # noqa: PLC0415
 
     root = vault_root.resolve()
+    d = ObsidianVault(root).ensure_operational_directories()
+    click.echo(
+        f"[OK] operational dirs: {d['created']} created, {d['existed']} already present"
+    )
     ensure_builtin_templates(root)
     click.echo(f"[OK] templates -> {root / '_AI_META' / 'templates'}")
 
