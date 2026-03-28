@@ -15,27 +15,41 @@ $ChatModel = if ($env:OLLAMA_CHAT_MODEL) { $env:OLLAMA_CHAT_MODEL } else { "llam
 $EmbedModel = if ($env:OLLAMA_EMBED_MODEL) { $env:OLLAMA_EMBED_MODEL } else { "nomic-embed-text" }
 $OllamaUrl = if ($env:OLLAMA_BASE_URL) { $env:OLLAMA_BASE_URL } else { "http://127.0.0.1:11434" }
 
-function Test-Python311 {
+# Any Python 3.11+ is OK (project requires >=3.11 per pyproject.toml).
+function Test-PythonMin311 {
     param([string[]] $Prefix)
     $code = "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"
     if ($Prefix.Count -lt 1) { return $false }
-    if ($Prefix.Count -eq 1) {
-        & $Prefix[0] -c $code 2>$null
-    } else {
-        & $Prefix[0] @($Prefix[1..($Prefix.Length - 1)] + @("-c", $code)) 2>$null
+    $oldErr = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        if ($Prefix.Count -eq 1) {
+            & $Prefix[0] -c $code 2>$null
+        } else {
+            & $Prefix[0] @($Prefix[1..($Prefix.Length - 1)] + @("-c", $code)) 2>$null
+        }
+        return ($LASTEXITCODE -eq 0)
+    } finally {
+        $ErrorActionPreference = $oldErr
     }
-    return ($LASTEXITCODE -eq 0)
 }
 
 $PyPrefix = $null
-if (Get-Command py -ErrorAction SilentlyContinue) {
-    if (Test-Python311 @("py", "-3.11")) { $PyPrefix = @("py", "-3.11") }
-}
-if (-not $PyPrefix -and (Get-Command python -ErrorAction SilentlyContinue)) {
-    if (Test-Python311 @("python")) { $PyPrefix = @("python") }
+$candidates = @(
+    @{ Name = "python"; Args = @("python") },
+    @{ Name = "py -3"; Args = @("py", "-3") },
+    @{ Name = "python3"; Args = @("python3") }
+)
+foreach ($c in $candidates) {
+    if (-not (Get-Command $c.Args[0] -ErrorAction SilentlyContinue)) { continue }
+    if (Test-PythonMin311 $c.Args) {
+        $PyPrefix = $c.Args
+        Write-Host "[install] Using $($c.Name) (Python 3.11+)"
+        break
+    }
 }
 if (-not $PyPrefix) {
-    Write-Error "Python 3.11+ not found. Install from https://www.python.org/downloads/"
+    Write-Error "Python 3.11 or newer not found (tried python, py -3, python3). Install from https://www.python.org/downloads/"
 }
 
 function Invoke-Py {

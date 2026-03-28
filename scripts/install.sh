@@ -48,18 +48,20 @@ if [[ -z "$VAULT" ]]; then
   VAULT="$(pwd)"
 fi
 
-if command -v python3.11 >/dev/null 2>&1; then
-  PY=python3.11
-elif command -v python3 >/dev/null 2>&1; then
-  PY=python3
-else
-  PY=python
-fi
-
-"$PY" -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)" || {
-  echo "Python 3.11+ is required." >&2
+PY=""
+for cand in python3 python python3.11; do
+  if command -v "$cand" >/dev/null 2>&1; then
+    if "$cand" -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)" 2>/dev/null; then
+      PY=$cand
+      echo "[install] Using $cand (Python 3.11+)"
+      break
+    fi
+  fi
+done
+if [[ -z "$PY" ]]; then
+  echo "Python 3.11 or newer is required (tried python3, python, python3.11)." >&2
   exit 1
-}
+fi
 
 if [[ "$LOCAL" -eq 1 ]]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

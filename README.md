@@ -80,7 +80,7 @@ curl -fsSL https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/master/
 
 Optional: `OBSIDIAN_AGENT_REPO_URL`, `OBSIDIAN_AGENT_GIT_REF` (default `master` — raw URLs must match your GitHub default branch), `OLLAMA_CHAT_MODEL`, `OLLAMA_EMBED_MODEL`, `OLLAMA_BASE_URL`. From a git clone use `--local` to `pip install -e` the repo root.
 
-**Windows PowerShell** (review scripts before `iex`; you must trust this repository):
+**Windows PowerShell** (review scripts before `iex`; you must trust this repository). The script picks the first interpreter that is **Python 3.11+** (`python`, then `py -3`, then `python3`):
 
 ```powershell
 irm https://raw.githubusercontent.com/TarAlex/ObsidianAIProcessor/master/scripts/install.ps1 | iex
