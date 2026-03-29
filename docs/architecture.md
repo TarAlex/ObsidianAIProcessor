@@ -440,6 +440,8 @@ class KnowledgePipeline:
 
 ### Stage 1 — Normalize *(unchanged from v1.0)*
 
+`agent/stages/s1_normalize.py` maps **file extension** to a source adapter (e.g. `.pdf` → `PDFAdapter`, `.md` → `MarkdownAdapter`). **`MarkdownAdapter`** treats Obsidian-style **URL clips**: YAML with `type: url` / `bookmark` / `web`, or `fetch_content: true`, plus a resolvable `http(s)` URL, triggers an **httpx** fetch and the same HTML→markdown path as **`WebAdapter`** (shared helpers in `agent/adapters/web_adapter.py`: `fetch_url_article_item`, `html_to_article_item`). Fetched items use `SourceType.ARTICLE`. Other `.md` / `.txt` files remain local notes (`NOTE`). Inbox **subfolder names** (`articles/`, `external_data/`, etc.) are **not** used for adapter selection—see `docs/requirements.md` §2.1.1.
+
 ### Stage 2 — Classify *(updated: now returns domain_path and staleness_risk)*
 
 ```python

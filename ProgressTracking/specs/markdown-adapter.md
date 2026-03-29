@@ -8,19 +8,23 @@ arch_section: §2 (Project Structure), §3 (Core Data Models — NormalizedItem)
 
 ## Problem statement
 
-`agent/adapters/markdown_adapter.py` is the simplest concrete adapter in the layer.
-It handles `.md` and `.txt` files dropped into `00_INBOX/raw_notes/` (and any other
-inbox subfolder containing plain-text notes), converting them into a canonical
-`NormalizedItem` without making any LLM calls, network requests, or vault writes.
+`agent/adapters/markdown_adapter.py` handles `.md` and `.txt` in any inbox subfolder.
+For most files it produces a `NormalizedItem` **without** LLM calls or vault writes.
+
+**URL clip mode (`.md` only):** when YAML frontmatter signals a web capture—`type` is
+`url`, `bookmark`, or `web` (case-insensitive), or `fetch_content` is truthy—and a
+resolvable `http(s)` URL exists (`url` / `source_url` or a link / bare URL in the body),
+the adapter performs an **httpx** GET and reuses the same HTML→markdown pipeline as
+`WebAdapter` (`fetch_url_article_item` in `web_adapter.py`). Resulting items use
+`SourceType.ARTICLE`. Optional body text after the clipped link is appended under
+`## Inbox notes`. **`.txt` never uses URL clip mode** (no fetch).
 
 Its role is twofold:
-1. **Production**: process real personal notes and text files from the inbox.
-2. **Testing fixture**: because it has no binary dependencies, it is the preferred
-   source in integration tests that validate the pipeline end-to-end.
+1. **Production**: personal notes, text files, and Obsidian Web Clipper–style `.md` URL stubs.
+2. **Testing fixture**: preferred source in integration tests (no binary deps for plain notes).
 
-It must honour every cross-cutting constraint in the feature spec:
-read-only from disk, `anyio` for async file I/O, no hardcoded paths, and
-`AdapterError` on any unrecoverable failure.
+Constraints: read-only from disk except network in URL clip mode, `anyio` for file I/O,
+no hardcoded vault paths, `AdapterError` on failure.
 
 ---
 
@@ -33,27 +37,31 @@ Input:
     config — fully validated AgentConfig (vault.root used for path validation only)
 
 Output:
-  NormalizedItem
-    raw_id         str              "SRC-YYYYMMDD-HHmmss" (UTC, from _generate_raw_id())
-    source_type    SourceType       SourceType.NOTE (always)
-    raw_text       str              file body, frontmatter stripped; non-empty
-    title          str              first "# Heading" in body, else path.stem
-    url            str              frontmatter "source_url" or "url" field; "" if absent
-    author         str              frontmatter "author" field; "" if absent
-    language       str              frontmatter "language" or "lang" field; "" if absent
-    source_date    date | None      frontmatter "source_date", "date", or "date_created"
-                                    parsed as ISO 8601 date; None if absent/unparseable
-    file_mtime     datetime         datetime.fromtimestamp(path.stat().st_mtime, tz=UTC)
-    raw_file_path  Path             the path argument as-is
-    extra_metadata dict             all remaining frontmatter keys not mapped above;
-                                    empty dict if no frontmatter or no extra keys
+  NormalizedItem — **local note path** (default)
+    source_type    SourceType.NOTE
+    raw_text       body after frontmatter stripped; non-empty
+    title          first "# Heading" in body, else path.stem (frontmatter "title" is
+                   not used for NOTE path; unmapped keys go to extra_metadata)
+    url / author / language / source_date — from frontmatter mapping as before
+
+  NormalizedItem — **URL clip path** (.md only, when frontmatter triggers fetch)
+    source_type    SourceType.ARTICLE
+    raw_text       fetched page as markdown, optional "## Inbox notes" + local body
+    title          frontmatter "title" if non-empty, else HTML-derived title
+    url / author / language / source_date — HTML metadata, overridden by frontmatter
+                   when those fields are set in YAML
+    extra_metadata merged frontmatter leftovers + fetch_url + http_status
+
+  Common fields: raw_id, file_mtime, raw_file_path as for other adapters.
 
 Error path:
   AdapterError(message: str, path: Path)
     Raised when:
     - File cannot be read (PermissionError, OSError)
     - File content is empty after stripping frontmatter and whitespace
-    Never raised for missing optional frontmatter fields (they silently default).
+    - URL clip mode but no resolvable URL
+    - Fetch failure or non-2xx HTTP (from web_adapter helpers)
+    Never raised for missing optional frontmatter fields in local-note mode.
 ```
 
 ---

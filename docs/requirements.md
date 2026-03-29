@@ -163,6 +163,23 @@ VAULT_ROOT/
         └── subdomain_index.md     # ★ NEW
 ```
 
+#### 2.1.1 `00_INBOX` subfolders — organizational conventions
+
+Stage 1 chooses a **source adapter by file type** (extension, and sometimes MIME sniff), **not** by which inbox subfolder the file sits in. The directories under `00_INBOX/` are **recommended conventions** for humans and for tools (e.g. Obsidian Web Clipper folder targets). Placing a file in `articles/` does not, by itself, force the “article” code path—what matters is the **extension** (`.html`, `.md` with URL clip frontmatter, `.url`, `.pdf`, etc.).
+
+**Rule of thumb:** if you would read it like a **page or narrative**, prefer `articles/` (or `trainings/` for long-form course-like material). If you would open it in a **spreadsheet, API client, or database**, prefer `external_data/`. **Personal quick captures** go in `raw_notes/`. **Audio** in `recordings/`. **Course packs, workshop folders, mixed media** in `trainings/`. Files can also live directly under `00_INBOX/` (e.g. PDFs) when no subfolder fits.
+
+**URL clips (Obsidian Web Clipper–style):** Markdown files with YAML frontmatter `type: url` (or `bookmark` / `web`) or `fetch_content: true`, plus a resolvable `http(s)` URL in `url` / `source_url` or in the body (markdown link or bare URL), are **fetched** and converted to article text like `.url` / HTML inputs. Target **`00_INBOX/articles/`** for Web Clipper. Local lines under the link (e.g. `## Notes`) are appended under `## Inbox notes` after the fetched content.
+
+| Subfolder | Intended use | Examples | Typical adapters (by file type) |
+|-----------|----------------|----------|----------------------------------|
+| `recordings/` | Audio to transcribe / ingest | `.mp3`, `.m4a`, `.wav`, `.ogg` | Audio (Whisper when enabled) |
+| `articles/` | Readable web and prose | `.html`, `.htm`, `.url`, `.webloc`, URL-clip `.md` (`type: url`), blog `.md` | WebAdapter; MarkdownAdapter (fetch or local note) |
+| `trainings/` | Courses, workshops, mixed learning material | Slides `.pptx`, handouts `.pdf`, outline `.md`, bookmarks | MarkItDown / PDF / Markdown / Web as per extension |
+| `raw_notes/` | Quick personal notes | `.md`, `.txt` | MarkdownAdapter (`NOTE`) |
+| `external_data/` | Structured or raw data exports | `.csv`, `.json`, `.xlsx`, `.xls`, `.docx` | MarkItDownAdapter (and similar) |
+| `00_INBOX/` (root) | Anything that does not need a subfolder | `.pdf`, loose files | PDFAdapter, etc. |
+
 ---
 
 ### 2.2 REFERENCES — Detailed Requirements

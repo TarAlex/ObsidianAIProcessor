@@ -198,6 +198,75 @@ class _MetaExtractor(HTMLParser):
             return None
 
 
+def html_to_article_item(
+    html: str,
+    *,
+    path: Path,
+    file_mtime: datetime,
+    source_url: str,
+    http_status: int | None,
+    raw_id: str,
+    extra_metadata: dict | None = None,
+) -> NormalizedItem:
+    """Build a NormalizedItem from HTML (shared by WebAdapter and MarkdownAdapter URL clips)."""
+    extractor = _MetaExtractor()
+    extractor.feed(html)
+
+    markdown_body = md(
+        html,
+        heading_style="ATX",
+        strip=["script", "style", "nav", "footer", "header", "aside"],
+    )
+    markdown_body = _collapse_blank_lines(markdown_body.strip())
+
+    if not markdown_body:
+        raise AdapterError("Empty content after conversion", path)
+
+    meta = dict(extra_metadata) if extra_metadata else {}
+    if "fetch_url" not in meta and source_url:
+        meta["fetch_url"] = source_url
+    if "http_status" not in meta and http_status is not None:
+        meta["http_status"] = http_status
+
+    return NormalizedItem(
+        raw_id=raw_id,
+        source_type=SourceType.ARTICLE,
+        raw_text=markdown_body,
+        title=extractor.resolved_title(path),
+        url=extractor.resolved_url(source_url),
+        author=extractor.resolved_author(),
+        language=extractor.resolved_language(),
+        source_date=extractor.resolved_source_date(),
+        file_mtime=file_mtime,
+        raw_file_path=path,
+        extra_metadata=meta,
+    )
+
+
+async def fetch_url_article_item(
+    url: str,
+    path: Path,
+    config: AgentConfig,
+    file_mtime: datetime,
+    raw_id: str,
+    extra_metadata: dict | None = None,
+) -> NormalizedItem:
+    """GET *url*, convert HTML to article NormalizedItem (for .url clips and markdown URL clips)."""
+    html, http_status = await _fetch_html(url, config, path)
+    base_meta = dict(extra_metadata) if extra_metadata else {}
+    base_meta.setdefault("fetch_url", url)
+    base_meta["http_status"] = http_status
+    return html_to_article_item(
+        html,
+        path=path,
+        file_mtime=file_mtime,
+        source_url=url,
+        http_status=http_status,
+        raw_id=raw_id,
+        extra_metadata=base_meta,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Adapter
 # ---------------------------------------------------------------------------
@@ -217,46 +286,32 @@ class WebAdapter(BaseAdapter):
         if suffix not in _SUPPORTED_SUFFIXES:
             raise AdapterError(f"Unsupported suffix: {suffix}", path)
 
+        file_mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
         http_status: int | None = None
         source_url: str = ""
 
         if suffix in {".url", ".webloc"}:
             source_url = await _read_url_from_shortcut(path)
-            html, http_status = await _fetch_html(source_url, config, path)
-        else:  # .html / .htm
-            try:
-                html = await anyio.Path(path).read_text(encoding="utf-8", errors="replace")
-            except (OSError, PermissionError) as exc:
-                raise AdapterError(str(exc), path) from exc
+            return await fetch_url_article_item(
+                source_url,
+                path,
+                config,
+                file_mtime,
+                self._generate_raw_id(),
+            )
 
-        extractor = _MetaExtractor()
-        extractor.feed(html)
+        # .html / .htm — local file
+        try:
+            html = await anyio.Path(path).read_text(encoding="utf-8", errors="replace")
+        except (OSError, PermissionError) as exc:
+            raise AdapterError(str(exc), path) from exc
 
-        markdown_body = md(
+        return html_to_article_item(
             html,
-            heading_style="ATX",
-            strip=["script", "style", "nav", "footer", "header", "aside"],
-        )
-        markdown_body = _collapse_blank_lines(markdown_body.strip())
-
-        if not markdown_body:
-            raise AdapterError("Empty content after conversion", path)
-
-        file_mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
-
-        return NormalizedItem(
-            raw_id=self._generate_raw_id(),
-            source_type=SourceType.ARTICLE,
-            raw_text=markdown_body,
-            title=extractor.resolved_title(path),
-            url=extractor.resolved_url(source_url),
-            author=extractor.resolved_author(),
-            language=extractor.resolved_language(),
-            source_date=extractor.resolved_source_date(),
+            path=path,
             file_mtime=file_mtime,
-            raw_file_path=path,
-            extra_metadata={
-                "fetch_url": source_url,
-                "http_status": http_status,
-            },
+            source_url=source_url,
+            http_status=http_status,
+            raw_id=self._generate_raw_id(),
+            extra_metadata={"fetch_url": source_url, "http_status": http_status},
         )

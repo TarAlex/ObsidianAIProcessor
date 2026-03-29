@@ -19,6 +19,11 @@ and return a `NormalizedItem` ready for the pipeline.
 
 No LLM is involved. No vault writes occur here.
 
+**Shared helpers:** `html_to_article_item()` and `fetch_url_article_item()` in the same
+module build `NormalizedItem` (ARTICLE) from HTML or from a fetched URL. **`MarkdownAdapter`**
+uses `fetch_url_article_item` for Obsidian-style URL-clip `.md` files so behavior stays
+aligned with `.url` / HTML handling.
+
 ---
 
 ## Module contract

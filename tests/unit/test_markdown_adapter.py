@@ -337,3 +337,101 @@ def test_unreadable_file_raises_adapter_error(tmp_path):
             with pytest.raises(AdapterError) as exc_info:
                 run_extract(f, tmp_path)
             assert exc_info.value.path == f
+
+
+# ---------------------------------------------------------------------------
+# URL clip (Obsidian Web Clipper-style) — httpx mocked
+# ---------------------------------------------------------------------------
+
+_SIMPLE_CLIP_HTML = """\
+<html lang="en">
+<head><title>Page Title</title></head>
+<body><p>Fetched paragraph content.</p></body>
+</html>
+"""
+
+
+def test_url_clip_type_url_fetches_and_appends_notes(tmp_path, httpx_mock):
+    httpx_mock.add_response(
+        url="https://example.com/article",
+        text=_SIMPLE_CLIP_HTML,
+    )
+    content = """---
+title: "Clip title override"
+type: url
+tags: [dev, news]
+---
+[https://example.com/article](https://example.com/article)
+
+## Notes
+
+Local observation here.
+"""
+    f = tmp_path / "clip.md"
+    f.write_text(content, encoding="utf-8")
+    item = run_extract(f, tmp_path)
+    assert item.source_type == SourceType.ARTICLE
+    assert item.title == "Clip title override"
+    assert "Fetched paragraph content." in item.raw_text
+    assert "## Inbox notes" in item.raw_text
+    assert "Local observation here." in item.raw_text
+    assert item.extra_metadata.get("http_status") == 200
+    assert item.extra_metadata.get("tags") == ["dev", "news"]
+
+
+def test_url_clip_fetch_content_flag_with_url_in_frontmatter(tmp_path, httpx_mock):
+    httpx_mock.add_response(url="https://x.com/y", text=_SIMPLE_CLIP_HTML)
+    content = """---
+fetch_content: true
+url: https://x.com/y
+---
+# ignored heading
+
+"""
+    f = tmp_path / "c.md"
+    f.write_text(content, encoding="utf-8")
+    item = run_extract(f, tmp_path)
+    assert item.source_type == SourceType.ARTICLE
+    assert "Fetched paragraph content." in item.raw_text
+
+
+def test_url_clip_missing_url_raises(tmp_path, httpx_mock):
+    content = """---
+type: url
+---
+Only prose, no link.
+"""
+    f = tmp_path / "bad.md"
+    f.write_text(content, encoding="utf-8")
+    with pytest.raises(AdapterError) as exc_info:
+        run_extract(f, tmp_path)
+    assert exc_info.value.path == f
+
+
+def test_url_clip_http_error_raises(tmp_path, httpx_mock):
+    httpx_mock.add_response(url="https://fail.example/", status_code=404)
+    content = """---
+type: url
+---
+[x](https://fail.example/)
+"""
+    f = tmp_path / "bad.md"
+    f.write_text(content, encoding="utf-8")
+    with pytest.raises(AdapterError):
+        run_extract(f, tmp_path)
+
+
+def test_txt_with_type_url_does_not_fetch(tmp_path, httpx_mock):
+    """Only .md participates in URL clip mode."""
+    content = """---
+type: url
+---
+https://example.com/nope
+Body.
+"""
+    f = tmp_path / "x.txt"
+    f.write_text(content, encoding="utf-8")
+    item = run_extract(f, tmp_path)
+    assert item.source_type == SourceType.NOTE
+    assert "example.com" in item.raw_text
+    assert httpx_mock.get_requests() == []

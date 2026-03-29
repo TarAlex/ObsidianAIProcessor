@@ -336,6 +336,20 @@ Every domain and subdomain folder under `02_KNOWLEDGE/` contains an `_index.md` 
 
 For the full tree with all subdomains see [docs/requirements.md §2](docs/requirements.md).
 
+### Inbox subfolders (`00_INBOX/`)
+
+The agent picks adapters by **file extension**, not by subfolder. These folders are **conventions** for organizing captures:
+
+| Folder | Use it for |
+|--------|------------|
+| `recordings/` | Audio files (e.g. `.mp3`, `.m4a`) |
+| `articles/` | Web and prose: `.html`, `.url`, and **Obsidian Web Clipper** `.md` with `type: url` (or `fetch_content: true`)—the agent **fetches** the page and appends your `## Notes` under **Inbox notes** |
+| `trainings/` | Course / workshop material (slides, PDFs, outlines—by type) |
+| `raw_notes/` | Quick personal `.md` / `.txt` |
+| `external_data/` | Structured exports (`.csv`, `.json`, Office docs via MarkItDown) |
+
+**Rule of thumb:** read like a page → `articles/` or `trainings/`; read like a table or API payload → `external_data/`. PDFs and other loose files can sit in `00_INBOX/` root. Details: [docs/requirements.md §2.1.1](docs/requirements.md).
+
 ---
 
 ## Obsidian plugins
